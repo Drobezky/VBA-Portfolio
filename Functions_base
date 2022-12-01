@@ -1,0 +1,67 @@
+'#### fill down the formula(usually Key) untill last row in data table next column ####
+Sub data_fillDown(wks As Worksheet, sStartColumnLetter As String, sEndColumnLetter As String, sCriteriaColumnLetter As String, lRowDeleteFrom As Long)
+   
+    Dim lr1 As Long
+           
+    With wks
+        ' clear the formula before filling down
+        lr1 = .Cells(.Rows.Count, sCriteriaColumnLetter).End(3).Row
+        If lr1 > lRowDeleteFrom Then .Range(.Cells(lRowDeleteFrom, sStartColumnLetter), .Cells(lr1, sEndColumnLetter)).ClearContents
+       
+        'fill down with formula
+        lr1 = .Cells(.Rows.Count, sCriteriaColumnLetter).End(3).Row
+        If lr1 >= lRowDeleteFrom Then .Range(.Cells(lRowDeleteFrom - 1, sStartColumnLetter), .Cells(lr1, sEndColumnLetter)).FillDown
+    End With
+   
+End 
+
+
+' added return value in case not found
+Sub data_vbaVlookup(lookupRng As Range, tableArrayRngs As Range, Column_IndexNo As Integer, ResultOffset_ColumnNo As Integer, Optional sErrValue As String = "")
+    Dim var As Variant
+    If Len(sErrValue) = 0 Then
+        var = Application.VLookup(lookupRng.Value, tableArrayRngs, Column_IndexNo, 0)
+        lookupRng.Offset(, ResultOffset_ColumnNo) = var
+    Else
+        var = Application.VLookup(lookupRng.Value, tableArrayRngs, Column_IndexNo, 0)
+        lookupRng.Offset(, ResultOffset_ColumnNo) = var
+        lookupRng.Offset(, ResultOffset_ColumnNo).Replace What:="#N/A", Replacement:=sErrValue
+    End If
+End Sub
+
+
+
+
+'Sum if by VBA to reduce the resource of excel auto calculation.
+Sub data_vbaSumIf(rngResult As Range, rngSum As Range, lOffsetColFromSum_SearchCriteria1 As Long, lOffsetColFromResult_Criteria1 As Long, _
+                                    Optional lOffsetColFromSum_SearchCriteria2 As Long = 0, Optional lOffsetColFromResult_Criteria2 As Long = 0, Optional lOffsetColFromSum_SearchCriteria3 As Long = 0, Optional lOffsetColFromResult_Criteria3 As Long = 0, _
+                                    Optional lOffsetColFromSum_SearchCriteria4 As Long = 0, Optional lOffsetColFromResult_Criteria4 As Long = 0, Optional lOffsetColFromSum_SearchCriteria5 As Long = 0, Optional lOffsetColFromResult_Criteria5 As Long = 0)
+    If rngSum.columns.Count <> 1 Then MsgBox "You didin't set correct data_vaSumIf function range(rngSum, lOffsetColFromSum_SearchCriteria1). the range should be 1 column."
+       
+    Dim rngCell As Range
+
+    For Each rngCell In rngResult
+        If lOffsetColFromSum_SearchCriteria2 = 0 Then
+            rngCell.Value = Application.WorksheetFunction.SumIfs(rngSum, rngSum.Offset(, lOffsetColFromSum_SearchCriteria1), rngCell.Offset(, lOffsetColFromResult_Criteria1))
+        ElseIf lOffsetColFromSum_SearchCriteria3 = 0 Then
+            rngCell.Value = Application.WorksheetFunction.SumIfs(rngSum, rngSum.Offset(, lOffsetColFromSum_SearchCriteria1), rngCell.Offset(, lOffsetColFromResult_Criteria1) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria2), rngCell.Offset(, lOffsetColFromResult_Criteria2))
+        ElseIf lOffsetColFromSum_SearchCriteria4 = 0 Then
+            rngCell.Value = Application.WorksheetFunction.SumIfs(rngSum, rngSum.Offset(, lOffsetColFromSum_SearchCriteria1), rngCell.Offset(, lOffsetColFromResult_Criteria1) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria2), rngCell.Offset(, lOffsetColFromResult_Criteria2) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria3), rngCell.Offset(, lOffsetColFromResult_Criteria3))
+        ElseIf lOffsetColFromSum_SearchCriteria5 = 0 Then
+            rngCell.Value = Application.WorksheetFunction.SumIfs(rngSum, rngSum.Offset(, lOffsetColFromSum_SearchCriteria1), rngCell.Offset(, lOffsetColFromResult_Criteria1) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria2), rngCell.Offset(, lOffsetColFromResult_Criteria2) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria3), rngCell.Offset(, lOffsetColFromResult_Criteria3) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria4), rngCell.Offset(, lOffsetColFromResult_Criteria4))
+        Else
+            rngCell.Value = Application.WorksheetFunction.SumIfs(rngSum, rngSum.Offset(, lOffsetColFromSum_SearchCriteria1), rngCell.Offset(, lOffsetColFromResult_Criteria1) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria2), rngCell.Offset(, lOffsetColFromResult_Criteria2) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria3), rngCell.Offset(, lOffsetColFromResult_Criteria3) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria4), rngCell.Offset(, lOffsetColFromResult_Criteria4) _
+                                                                                                                                , rngSum.Offset(, lOffsetColFromSum_SearchCriteria5), rngCell.Offset(, lOffsetColFromResult_Criteria5))
+        End If
+    Next rngCell
+                                   
+End Sub
