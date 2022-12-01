@@ -1,0 +1,105 @@
+'updated 29-09-2021 Joachim return the fullpath or filename as array considering extension file
+Function file_aListPaths(sFolderForListing As String, Optional sFileExt As String = "", Optional bOpt_onlyFileName As Boolean = False) As Variant
+    Dim arr As Variant
+    Dim i As Integer
+    Dim ObjFso As Object, objFolder As Object
+    Dim objFiles As Object, objFile As Object
+   
+   
+    Set ObjFso = CreateObject("Scripting.FileSystemObject")
+    Set objFolder = ObjFso.GetFolder(sFolderForListing)
+    Set objFiles = objFolder.Files
+       
+ 
+    If objFiles.Count = 0 Then Exit Function
+    If Right(sFolderForListing, 1) <> "\" Then sFolderForListing = sFolderForListing & "\"
+   
+    ReDim arr(0 To objFiles.Count - 1)
+    For Each objFile In objFiles
+        If bOpt_onlyFileName = True Then
+            If sFileExt = Right(objFile.Name, Len(objFile.Name) - InStrRev(objFile.Name, ".")) Or sFileExt = "" Then arr(i) = objFile.Name
+       
+        Else
+            If sFileExt = Right(objFile.Name, Len(objFile.Name) - InStrRev(objFile.Name, ".")) Or sFileExt = "" Then arr(i) = sFolderForListing & objFile.Name
+   
+        End If
+        i = i + 1
+    Next
+   
+    file_aListPaths = arr
+End Function
+
+
+'updated 15-09-2021 return the fullpath or filename as array
+Function file_aListFolders(sPath As String, Optional bOpt_onlyFolderName As Boolean = False) As Variant
+    Dim arr As Variant, i As Integer
+    Dim ObjFso As Object, objFolder0 As Object
+    Dim objFolders As Object, objFolder As Object
+     
+    Set ObjFso = CreateObject("Scripting.FileSystemObject")
+    Set objFolder0 = ObjFso.GetFolder(sPath)
+    Set objFolders = objFolder0.SubFolders
+   
+    If objFolders.Count = 0 Then Exit Function
+    If Right(sPath, 1) <> "\" Then sPath = sPath & "\"
+         
+    ReDim arr(0 To objFolders.Count - 1)
+    For Each objFolder In objFolders
+        If bOpt_onlyFolderName = False Then arr(i) = sPath & objFolder.Name Else: arr(i) = objFolder.Name
+        i = i + 1
+    Next
+   
+    file_aListFolders = arr
+End Function
+
+
+
+' 08-2021: Excluding the array items from front list by number
+Function file_aDeleteItemsFromFront(avList As Variant, excludeItems As Integer) As Variant
+    Dim i As Integer:
+    Dim avResult() As Variant
+       
+    For i = excludeItems To UBound(avList)  ' run the all array list items
+        ReDim Preserve avResult(i - excludeItems)
+        avResult(i - excludeItems) = avList(i)
+    Next
+    ReDim Preserve avResult(UBound(avList) - excludeItems)
+   
+    file_aDeleteItemsFromFront = avResult
+End Function
+
+
+
+
+'2022-05-17 searching folder(including sub folders) with wild card
+Function file_getFolderFromSubfolder(sHostFolder As String, sWildCard As String)
+    If Right(sHostFolder, 1) = "\" Then sHostFolder = Left(sHostFolder, Len(sHostFolder) - 1)
+    sWildCard = "*" & sWildCard & "*"
+    Dim objFileSystem As Object:       Set objFileSystem = CreateObject("Scripting.FileSystemObject")
+    Dim objSubFolder_Lv1 As Object, objSubFolder_Lv2 As Object, objSubFolder_Lv3 As Object
+       
+       For Each objSubFolder_Lv1 In objFileSystem.GetFolder(sHostFolder).SubFolders
+            If objSubFolder_Lv1.Name Like sWildCard Then
+                file_getFolderFromSubfolder = objSubFolder_Lv1.Path
+                Exit Function
+            End If
+           
+            For Each objSubFolder_Lv2 In objFileSystem.GetFolder(objSubFolder_Lv1).SubFolders
+                If objSubFolder_Lv2.Name Like sWildCard Then
+                    file_getFolderFromSubfolder = objSubFolder_Lv2.Path
+                    Exit Function
+                End If
+           
+                For Each objSubFolder_Lv3 In objFileSystem.GetFolder(objSubFolder_Lv2).SubFolders
+                    If objSubFolder_Lv3.Name Like sWildCard Then
+                        file_getFolderFromSubfolder = objSubFolder_Lv3.Path
+                        Exit Function
+                    End If
+                Next
+               
+            Next
+           
+        Next
+       
+        file_getFolderFromSubfolder = vbNullString
+End Function
