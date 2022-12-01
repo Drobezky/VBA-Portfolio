@@ -1,0 +1,78 @@
+'update: Exporting the range value as text file. /need to fine out the delete the lask line
+Sub data_exportRng2TextFile(rngExport As Range, sFileName As String, Optional sOpt_FolderPath As String = "E:\Z. Temp_Folder")
+       
+    Dim slineText As String
+    Dim i As Long, j As Long, fileNum As Long
+   
+    If Left(sOpt_FolderPath, 1) <> "\" Then sOpt_FolderPath = sOpt_FolderPath & "\"
+    Dim sPathTemp As String:        sPathTemp = sOpt_FolderPath & sFileName & "_Temp" & ".txt"
+    Dim sPath As String:        sPath = sOpt_FolderPath & sFileName & ".txt"
+   
+    fileNum = FreeFile
+    Open sPathTemp For Output As #fileNum
+   
+    For i = 1 To rngExport.Rows.Count
+        For j = 1 To rngExport.columns.Count
+            If rngExport.columns.Count = 1 Then
+                slineText = rngExport.Cells(i, j)
+            ElseIf rngExport.columns.Count > 1 And j <> rngExport.columns.Count Then
+                slineText = rngExport.Cells(i, j) & slineText & ","
+            Else
+                slineText = slineText & rngExport.Cells(i, j)
+            End If
+        Next j
+        Print #fileNum, slineText
+    Next i
+           
+    Close #fileNum
+   
+End Sub
+
+
+'update: Exporting the range as PNG image file. /need to update the validation for file name(should contain "_")  / return file name_Width_Height_YYYYMMDD
+Sub data_exportRng2PNG(rngExport As Range, sFileName As String, Optional sOpt_FolderPath As String = "E:\Z. Temp_captureForEmail")
+    Application.ScreenUpdating = False: Application.DisplayAlerts = False
+    Dim picRange As Shape
+    Dim picH As Double, picW As Double
+    Dim sPngPath As String
+   
+    If Left(sOpt_FolderPath, 1) <> "\" Then sOpt_FolderPath = sOpt_FolderPath & "\"
+   
+    'Create temporary chart
+    rngExport.CopyPicture xlScreen, xlPicture
+    Dim wksTemp As Worksheet:       Set wksTemp = ActiveWorkbook.Sheets.Add
+        wksTemp.Paste
+   
+    Set picRange = wksTemp.Shapes.Item(1)       'check image height and width
+        With picRange
+            picH = Int(.Height)
+            picW = Int(.Width)
+            .Delete
+        End With
+   
+        With wksTemp.Shapes.AddChart2
+            .Height = picH
+            .Width = picW
+        End With
+   
+    Dim myChart As Chart:      Set myChart = wksTemp.Shapes.Item(1).Chart       'Paste range as image to chart
+        myChart.ChartArea.Select
+        myChart.Paste
+       
+    'Save chart image to file
+    On Error Resume Next
+        MkDir Left(sOpt_FolderPath, Len(sOpt_FolderPath) - 1)
+    On Error GoTo 0
+       
+    'if the name has underbar should be error message
+    'if the name has underbar should be error message
+    'if the name has underbar should be error message
+   
+     
+    'Save and Clean up the temp sheet
+    sPngPath = sOpt_FolderPath & sFileName & "_" & picW & "_" & picH & "_" & Format(Now, "YYYYMMDD") & ".png"
+    myChart.Export sPngPath, "png"
+    wksTemp.Delete
+    Application.ScreenUpdating = True: Application.DisplayAlerts = True
+    Set myChart = Nothing: Set picRange = Nothing: Set wksTemp = Nothing
+End Sub
