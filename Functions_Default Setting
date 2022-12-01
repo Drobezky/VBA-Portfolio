@@ -1,0 +1,154 @@
+' Application defalut setting. default value is true
+Sub data_defaultApp(Optional bScreenUpdate As Boolean = True, Optional bDisplayAlerts As Boolean = True, Optional bCutCopyMode As Boolean = True, Optional bCalculationAuto As Boolean = True)
+    Application.ScreenUpdating = bScreenUpdate
+    Application.DisplayAlerts = bDisplayAlerts
+    Application.CutCopyMode = bCutCopyMode
+    If bCalculationAuto Then
+        Application.Calculation = xlCalculationAutomatic
+    Else
+        Application.Calculation = xlCalculationManual
+    End If
+End Sub
+
+'Default setting for workbook / filtermode .show all data, pivot setting to delete the pivot cache  / sProtectPW unprotect option added
+Sub data_defaultWkb(wkb1 As Workbook, Optional wkb2 As Workbook, Optional wkb3 As Workbook, Optional sProtectPW As String = "")
+   
+    Dim wks As Worksheet, pvt As PivotTable
+   
+    For Each wks In wkb1.Worksheets
+        With wks
+            If Len(sProtectPW) = 0 Then  ' No password to unprotect
+                .Unprotect
+            Else  'password to unprotect
+                .Unprotect (sProtectPW)
+            End If
+           
+            If .FilterMode Then .ShowAllData
+            On Error Resume Next
+                For Each pvt In wks.PivotTables
+                    pvt.SaveData = False:   pvt.PivotCache.RefreshOnFileOpen = True
+                Next
+            On Error GoTo 0
+        End With
+    Next
+       
+    If wkb2 Is Nothing Then Exit Sub
+    For Each wks In wkb2.Worksheets
+        With wks
+            If Len(sProtectPW) = 0 Then  ' No password to unprotect
+                .Unprotect
+            Else  'password to unprotect
+                .Unprotect (sProtectPW)
+            End If
+           
+            If .FilterMode Then .ShowAllData
+            On Error Resume Next
+                For Each pvt In wks.PivotTables
+                    pvt.SaveData = False:   pvt.PivotCache.RefreshOnFileOpen = True
+                Next
+            On Error GoTo 0
+        End With
+    Next
+   
+    If wkb3 Is Nothing Then Exit Sub
+    For Each wks In wkb3.Worksheets
+        With wks
+            If Len(sProtectPW) = 0 Then  ' No password to unprotect
+                .Unprotect
+            Else  'password to unprotect
+                .Unprotect (sProtectPW)
+            End If
+           
+            If .FilterMode Then .ShowAllData
+            On Error Resume Next
+                For Each pvt In wks.PivotTables
+                    pvt.SaveData = False:   pvt.PivotCache.RefreshOnFileOpen = True
+                Next
+            On Error GoTo 0
+        End With
+    Next
+   
+End Sub
+
+
+'Default setting for worksheet / filtermode .show all data, unhideColOption unhideRowOption / sProtectPW unprotect option added
+Sub data_defaultWks(wks1 As Worksheet, Optional wks2 As Worksheet, Optional wks3 As Worksheet, Optional wks4 As Worksheet, Optional wks5 As Worksheet, Optional bUnhideColOpt As Boolean = False, Optional bUnhideRowOpt As Boolean = False, Optional sProtectPW As String = "")
+   
+    With wks1
+        If Len(sProtectPW) = 0 Then  ' No password to unprotect
+            .Unprotect
+        Else  'password to unprotect
+            .Unprotect (sProtectPW)
+        End If
+        If .FilterMode Then .ShowAllData
+        If bUnhideColOpt = True Then .Range("1:1").EntireColumn.Hidden = False
+        If bUnhideRowOpt = True Then .Range("a:a").EntireRow.Hidden = False
+    End With
+       
+    If wks2 Is Nothing Then Exit Sub
+    With wks2
+        If Len(sProtectPW) = 0 Then  ' No password to unprotect
+            .Unprotect
+        Else  'password to unprotect
+            .Unprotect (sProtectPW)
+        End If
+       
+        If .FilterMode Then .ShowAllData
+        If bUnhideColOpt = True Then .Range("1:1").EntireColumn.Hidden = False
+        If bUnhideRowOpt = True Then .Range("a:a").EntireRow.Hidden = False
+    End With
+   
+    If wks3 Is Nothing Then Exit Sub
+    With wks3
+        If Len(sProtectPW) = 0 Then  ' No password to unprotect
+            .Unprotect
+        Else  'password to unprotect
+            .Unprotect (sProtectPW)
+        End If
+       
+        If .FilterMode Then .ShowAllData
+        If bUnhideColOpt = True Then .Range("1:1").EntireColumn.Hidden = False
+        If bUnhideRowOpt = True Then .Range("a:a").EntireRow.Hidden = False
+    End With
+           
+    If wks4 Is Nothing Then Exit Sub
+    With wks4
+        If Len(sProtectPW) = 0 Then  ' No password to unprotect
+            .Unprotect
+        Else  'password to unprotect
+            .Unprotect (sProtectPW)
+        End If
+        If .FilterMode Then .ShowAllData
+        If bUnhideColOpt = True Then .Range("1:1").EntireColumn.Hidden = False
+        If bUnhideRowOpt = True Then .Range("a:a").EntireRow.Hidden = False
+    End With
+   
+    If wks5 Is Nothing Then Exit Sub
+    With wks5
+        If Len(sProtectPW) = 0 Then  ' No password to unprotect
+            .Unprotect
+        Else  'password to unprotect
+            .Unprotect (sProtectPW)
+        End If
+        If .FilterMode Then .ShowAllData
+        If bUnhideColOpt = True Then .Range("1:1").EntireColumn.Hidden = False
+        If bUnhideRowOpt = True Then .Range("a:a").EntireRow.Hidden = False
+    End With
+End Sub
+
+
+'corrected error not to delete smaller than "Long_startRngRow", if lastrow is smaller than startrow, return Nothing
+Function data_lastRowRng(targetWks As Worksheet, sStartCol As String, sEndCol As String, sCriteriaCol As String, Optional lOpt_startRow As Long = 1) As Range
+   
+    With targetWks
+Dim lr As Long:     lr = .Cells(.Rows.Count, sCriteriaCol).End(xlUp).Row
+        If lr >= lOpt_startRow Then
+            Set data_lastRowRng = .Range(sStartCol & lOpt_startRow & ":" & sEndCol & lr)
+        Else
+            Set data_lastRowRng = Nothing
+        End If
+    End With
+End Function
+
+
+
