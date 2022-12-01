@@ -1,0 +1,1903 @@
+
+Option Explicit
+
+
+Sub Shared_About_Ribbon_Click(control As IRibbonControl)
+    Select Case control.Tag
+        Case "about1": Call about_update_AddinFile
+        Case "about2": Call about_info
+        Case "about3": Call about_MyNote
+        Case "about4": Call about_SD_Manual
+    End Select
+End Sub
+
+
+
+
+Option Explicit
+
+ 
+' code for ribborn tab to update the ribbon as newest version
+Sub about_update_AddinFile()
+   
+    'check Cloud Disk Connection and
+    If Not file_existFile(file_rawFilePath(1)) Then
+        frmErr_CloudDisk.Show
+        Exit Sub
+    End If
+   
+   
+    Dim sUserFolderPath As String:  sUserFolderPath = Environ("Userprofile") & "\AppData\Roaming\Microsoft\AddIns\"
+    Dim sMsg As String, sMsgs As String, sRemoveSA_Common As String
+    Dim i As Integer, lr As Integer
+    Dim myAddin As AddIn
+    Dim vName, vTempAddinList, vUserFolderSAAddinList() As Variant
+   
+   
+   
+    '0. delete the uninstalled SA addin files in user folder
+    On Error Resume Next
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print myAddin.FullName
+        If myAddin.FullName Like CStr(sUserFolderPath & "SA_1Common*") Or _
+            myAddin.FullName Like CStr(sUserFolderPath & "SA_2Leaders*") Or _
+            myAddin.FullName Like CStr(sUserFolderPath & "SA_3SAonly*") Then
+                myAddin.Installed = False
+                Kill myAddin.FullName
+                Debug.Print "deleted file :  " & myAddin.FullName
+        End If
+    Next
+   
+   
+    'On Error GoTo errHandler
+    '1. Copy and paste the authorities from "SA_Common" File sheet to SA_Update
+    Dim sCopyFile As String:        sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_1Common*", True)
+    Dim sPasteFile  As String:      sPasteFile = sUserFolderPath & file_getFilenameFromPath(sCopyFile)
+    FileCopy sCopyFile, sPasteFile
+    AddIns.Add filename:=sPasteFile, CopyFile:=True     '1.1. Enable the addin
+   
+    Workbooks.Open filename:=sCopyFile
+    Dim wkb1 As Workbook:       Set wkb1 = Workbooks(file_getFilenameFromPath(sCopyFile))
+    wkb1.Worksheets(1).Cells.Copy ThisWorkbook.Worksheets(1).Range("a1")
+   
+   
+   
+       
+    '2. Copy and paste the authorities from "SA_Common" File sheet to SA_Update
+    '2.1. Get user ID and check Authority
+   
+    Dim sUserID As String:      sUserID = env_getUserName(True)
+   
+    With ThisWorkbook.Worksheets(1)
+        .Range("a1:b1").AutoFilter Field:=1, Criteria1:=sUserID
+        lr = .Cells(.Rows.Count, "a").End(xlUp).Row
+        Dim iAuthority As Integer:  iAuthority = .Cells(lr, "b").Value
+        wkb1.Close savechanges:=False
+    End With
+   
+   
+    If iAuthority = 2 Then
+        sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_2Leader*", True)
+        sPasteFile = sUserFolderPath & file_getFilenameFromPath(sCopyFile)
+        FileCopy sCopyFile, sPasteFile
+        AddIns.Add filename:=sPasteFile, CopyFile:=True
+       
+    ElseIf iAuthority = 3 Then
+        sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_2Leader*", True)
+        sPasteFile = sUserFolderPath & file_getFilenameFromPath(sCopyFile)
+        FileCopy sCopyFile, sPasteFile
+        AddIns.Add filename:=sPasteFile, CopyFile:=True
+       
+        sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_3SAonly*", True)
+        sPasteFile = sUserFolderPath & file_getFilenameFromPath(sCopyFile)
+        FileCopy sCopyFile, sPasteFile
+        AddIns.Add filename:=sPasteFile, CopyFile:=True
+    End If
+   
+       
+           
+        'Add into addin manager
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print (myAddin.Name)
+        If myAddin.Name Like "SA_*" Then
+            myAddin.Installed = True
+        End If
+    Next
+   
+    On Error GoTo 0
+   
+    Exit Sub
+   
+errHandler:
+    MsgBox "Please check the below." & vbNewLine & vbNewLine & _
+                    "   1. Check whether your Cloud Disk is connected." & vbNewLine & _
+                    "       --> Please lunch the Colud Disk located on Window  wallpaper." & vbNewLine & vbNewLine & _
+                    "   2. Check you can find the folder 'Sales Admin COMMON' folder. " & vbNewLine & _
+                    "       --> Please request Sales Admin Team to give the authority." & vbNewLine & vbNewLine & _
+                    "    3. Other reason, please contact to Sales Admin team", , "Error Resaon!!"
+End Sub
+
+Sub about_info()
+    'check Cloud Disk Connection and
+    If Not file_existFile(file_rawFilePath(1)) Then
+        frmErr_CloudDisk.Show
+        Exit Sub
+    End If
+   
+    On Error GoTo Escape:
+    frm_About.Show
+   
+    Exit Sub
+Escape:         MsgBox "Error. Please ask Sales Admin Team to support"
+End Sub
+
+Sub about_MyNote()
+    'check Cloud Disk Connection and
+    If Not file_existFile(file_rawFilePath(1)) Then
+        frmErr_CloudDisk.Show
+        Exit Sub
+    End If
+           
+    On Error GoTo Escape:
+    Dim sUserName As String: sUserName = env_getUserName(True)
+    Dim wb As Workbook
+    Dim sNote_FullName As String
+    Dim sNote_Path As String:
+   
+    If sUserName = "kwangbeom.park" Or sUserName = "joachim.drobek" Or sUserName = "monika.kim" Or _
+       sUserName = "michal.szatkowski" Or sUserName = "katsiaryna.davydchyk" Then 'for Sales Admin team
+       sNote_FullName = file_mostRecentFile("W:\02. Comm File\07. SA Communication File\", "*" & sUserName & "*", True)
+       Workbooks.Open filename:=sNote_FullName
+       
+    Else  'none Sales Admin team
+        sNote_FullName = file_mostRecentFile("E:\MyNote\", "*MyNote_" & sUserName & "*", True)
+        sNote_Path = file_getFilenameFromPath(sNote_FullName)
+   
+        If file_existFile(sNote_FullName) Then
+            Workbooks.Open filename:=sNote_FullName
+        ElseIf file_existFolder(sNote_Path) Then
+            Set wb = New Workbook
+            wb.SaveAs ("E:\MyNote\MyNote_" & sUserName & ".xlsm")
+        Else
+            MkDir ("E:\MyNote\")
+            Set wb = Workbooks.Add
+            wb.SaveAs filename:="E:\MyNote\MyNote_" & sUserName & ".xlsm", FileFormat:=xlOpenXMLWorkbookMacroEnabled
+        End If
+    End If
+   
+   
+   
+    Exit Sub
+Escape:         MsgBox "Error. Please ask Sales Admin Team to support"
+End Sub
+
+
+
+Sub about_SD_Manual()
+    'check Cloud Disk Connection and
+    If Not file_existFile(file_rawFilePath(1)) Then
+        frmErr_CloudDisk.Show
+        Exit Sub
+    End If
+   
+    On Error GoTo Escape:
+    frm_SDManual.Show
+   
+    Exit Sub
+Escape:         MsgBox "Error. Please ask Sales Admin Team to support"
+End Sub
+
+SA1 Common
+
+
+1.
+Option Explicit
+
+
+Sub Shared_Basic_Ribbon_Click1(control As IRibbonControl)
+    Select Case control.Tag
+   
+        Case "rawFile_1AAI": Call rawFile_1AAI
+        Case "rawFile_2Claim": Call rawFile_2Claim
+        Case "rawFile_3PRLI":    Call rawFile_3PRLI
+        Case "rawFile_4Sales":    Call rawFile_4Sales
+        Case "rawFile_7PYSales":    Call rawFile_7PYSales
+       
+        Case "commFile_1": Call commFile_1HE
+        Case "commFile_2": Call commFile_2HA
+        Case "commFile_3": Call commFile_3IT
+        Case "commFile_4": Call commFile_4ID
+        Case "commFile_5": Call commFile_5AE
+        Case "commFile_6": Call commFile_6TT  ' Current Year
+        Case "commFile_7": Call commFile_7TT  ' PY
+       
+        Case "list_1": Call List_1Copy_PromoConfirm_ToFolder
+        Case "list_2": Call List_2Copy_ClaimEmail_ToFolder
+        Case "list_3": Call List_3Copy_customerNotice_ToFolder
+        Case "list_4": Call List_5Copy_RPA_CN_ToFolder
+        Case "list_5": Call List_4Z02_Template
+       
+        Case "byPromo_1": Call ByPromoNo_1AAI
+        Case "byPromo_2": Call ByPromoNo_7originalAAI
+        Case "byPromo_3": Call ByPromoNo_3PRLI
+        Case "byPromo_4": Call ByPromoNo_8originalPRLI
+        Case "byPromo_5": Call ByPromoNo_2Claim
+        Case "byPromo_6": Call ByPromoNo_4Dir
+        Case "byPromo_7": Call byPromoNo_5ClaimEmail
+        Case "byPromo_8": Call byPromoNo_6customerNotice
+        Case "byPromo_9": Call ByPromoNo9_ByCreditNoteNo_Dir
+               
+        Case "Tool_1": Call Tool_1PrintPreview
+        Case "Tool_2": Call Tool_2SelectedRangeToImage
+        Case "NoFormat_1": Call NoFormat_1
+        Case "NoFormat_2": Call NoFormat_1K
+        Case "NoFormat_3": Call NoFormat_1M
+        Case "NoFormat_4": Call NoFormat_Percent
+                               
+    End Select
+   
+End Sub
+
+
+
+
+
+2.
+
+Option Explicit
+
+'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+'#######################  RawFile ############################
+
+Sub rawFile_1AAI()
+    Application.DisplayAlerts = False:      On Error GoTo Escape
+   
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(1):          Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Cells(5, 1).Select
+        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("b4:w4").AutoFilter
+        If .FilterMode Then .ShowAllData
+    End With
+    Application.DisplayAlerts = True:       Exit Sub
+   
+Escape:    frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+Sub rawFile_2Claim()
+    Application.DisplayAlerts = False:      On Error GoTo Escape
+       
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(2):          Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("a2").Select
+        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("a1:ai1").AutoFilter
+        If .FilterMode Then .ShowAllData
+    End With
+    Application.DisplayAlerts = True:       Exit Sub
+   
+Escape:     frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+Sub rawFile_3PRLI()
+    Application.DisplayAlerts = False:      On Error GoTo Escape
+       
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(8):          Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        If .AutoFilterMode = False Then .Range("D1:bm1").AutoFilter
+        If .FilterMode Then .ShowAllData
+    End With
+    Application.DisplayAlerts = True:       Exit Sub
+   
+Escape:     frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+Sub rawFile_4Sales()
+    Application.DisplayAlerts = False:      On Error GoTo Escape:      Workbooks.Open filename:=file_rawFilePath(4):               Application.DisplayAlerts = True:       Exit Sub
+   
+Escape:     frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+Sub rawFile_7PYSales()
+    Application.DisplayAlerts = False:      On Error GoTo Escape:        Workbooks.Open filename:=file_rawFilePath(7):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+'#######################  Comm.File ############################
+Sub commFile_1HE()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(11):       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_2HA()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(12):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_3IT()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(13):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_4ID()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(14):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_5AE()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(15):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_6TT()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(18):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub commFile_7TT()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(16):               Application.DisplayAlerts = True:       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+
+
+'#######################  List  ############################
+Sub List_1Copy_PromoConfirm_ToFolder()
+    Dim promoNo As Range, rngPromoNos As Range:     Set rngPromoNos = Selection
+    Dim sPath As String, sFileName As String
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+    Dim sErrMsg As String, sTargetFolder As String, iErrCnt As Integer, iTotalCnt As Integer  'variables for result info
+   
+    '1. Delet the previous created folder / Select the range(promtoin number list)  / check the selected value if promotion No.
+    If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = True Then Call file_DelAllFoldersFiles("E:\Z. Temp_Folder\Promotion Extacted List", True)
+    If Selection.Cells.Count > 1 Then Set rngPromoNos = Selection.SpecialCells(xlCellTypeVisible)
+    If Not rngPromoNos.Cells(1, 1).Value Like "PL-?TS?-20######-####" Then
+        MsgBox "!!! What you selected value(" & rngPromoNos.Cells(1, 1).Value & ") is not Promotion No!!!", , "Wrong Choice!!!"
+        Exit Sub
+    End If
+   
+    '2. find the full path / creat folder / result info
+    On Error GoTo Escape:
+    For Each promoNo In rngPromoNos
+        sPath = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate) & "System\", CStr(promoNo), True) 'find the full path
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 1) & "_System\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 2) & "_system\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 3) & "_system\", CStr(promoNo), True)
+        sFileName = file_getFilenameFromPath(sPath)
+       
+        If file_existFolder("E:\Z. Temp_Folder\") = False Then MkDir ("E:\Z. Temp_Folder\")  'folder creation
+        If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = False Then MkDir ("E:\Z. Temp_Folder\Promotion Extacted List\")
+        sTargetFolder = "E:\Z. Temp_Folder\Promotion Extacted List\" & Format(DateTime.Now, "YYYY-MM-DD HH.MM") & "_PromotionConfirmationEmailList\"
+        If file_existFolder(sTargetFolder) = False Then MkDir (sTargetFolder)
+               
+        iTotalCnt = iTotalCnt + 1   'Result Info: count total numbe of promotion searching
+        If sPath <> "\No files match " Then
+            FileCopy sPath, sTargetFolder & sFileName   'copy and paste the file
+        ElseIf sPath = "\No files match " Then       ' error promotion number save
+            sErrMsg = sErrMsg & promoNo & ": Not found" & vbNewLine
+            iErrCnt = iErrCnt + 1
+        End If
+    Next
+   
+   '3. Result message inform
+    If Len(sErrMsg) > 1 Then MsgBox sErrMsg & vbNewLine & vbNewLine & "Total Not Found: " & iErrCnt & vbNewLine & "Total Found: " & iTotalCnt - iErrCnt, , "Search Result(" & Format((iTotalCnt - iErrCnt) / iTotalCnt, "##%;##%;#0%") & ")"   'fail to find Alll
+    If Len(sErrMsg) = 0 Then MsgBox "You found all files: Total " & iTotalCnt - iErrCnt & " files.", , "Search Result(Sucess 100%)"      'Sucess
+    If iTotalCnt - iErrCnt > 0 Then Shell "explorer """ & sTargetFolder & "", vbNormalFocus        'open the folder if there is any file searched.
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(List_1Copy_PromoConfirm_ToFolder)", , "Exceptional Error!!"
+End Sub
+
+Sub List_2Copy_ClaimEmail_ToFolder()
+    Dim rngSelected As Range:   Set rngSelected = Selection
+    Dim avPromoList() As Variant, avPathEmails() As Variant, avFilenames() As Variant, i As Integer, j As Integer
+    Dim sFolderPath As String, sFileName As String
+    Dim sErrMsg As String, sTargetFolder As String, iErrCnt As Integer, iTotalCnt As Integer   ' variables for search result
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+     '1. Delet the previous created folder / Select the range(promtoin number list) / selected value should be longer than 4 letters
+    If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = True Then Call file_DelAllFoldersFiles("E:\Z. Temp_Folder\Promotion Extacted List\", True)
+    If Selection.Cells.Count > 1 Then Set rngSelected = Selection.SpecialCells(xlCellTypeVisible)
+    ReDim avPromoList(rngSelected.Count - 1):               avPromoList = data_mulitCellToArray(rngSelected)
+    If Len(CStr(rngSelected.Cells(1, 1).Value)) < 4 Then
+        MsgBox "!!! Please select the searching value longer than 4 letters!!!", , "Not allow to search!!!"
+        Exit Sub
+    End If
+   
+    '2. find the full path / creat folder / result info
+    On Error GoTo Escape
+    For i = LBound(avPromoList) To UBound(avPromoList)  ' finding the fullpath and contain in array / also file name in array
+        sFolderPath = file_findFolderDriver("W:\10. Raw Data\00. Claim_APCN_archived\" & currDate & "\")
+        sFileName = Dir(sFolderPath)   'searching all files in specific folder path
+        Do While sFileName <> ""
+            If sFileName Like "*" & CStr(avPromoList(i)) & "*" Then
+                ReDim Preserve avPathEmails(j):      avPathEmails(j) = sFolderPath & sFileName
+                ReDim Preserve avFilenames(j):         avFilenames(j) = sFileName
+                j = j + 1
+            End If
+            sFileName = Dir()
+        Loop
+       
+        sFolderPath = file_findFolderDriver("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate - 1) & "\")
+        sFileName = Dir(sFolderPath)   'searching all files in specific folder path
+        Do While sFileName <> ""
+            If sFileName Like "*" & CStr(avPromoList(i)) & "*" Then
+                ReDim Preserve avPathEmails(j):      avPathEmails(j) = sFolderPath & sFileName
+                ReDim Preserve avFilenames(j):         avFilenames(j) = sFileName
+                j = j + 1
+            End If
+            sFileName = Dir()
+        Loop
+       
+        sFolderPath = file_findFolderDriver("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate - 2) & "\")
+        sFileName = Dir(sFolderPath)   'searching all files in specific folder path
+        Do While sFileName <> ""
+            If sFileName Like "*" & CStr(avPromoList(i)) & "*" Then
+                ReDim Preserve avPathEmails(j):      avPathEmails(j) = sFolderPath & sFileName
+                ReDim Preserve avFilenames(j):         avFilenames(j) = sFileName
+                j = j + 1
+            End If
+            sFileName = Dir()
+        Loop
+       
+        iTotalCnt = iTotalCnt + 1   'count total numbe of promotion searching
+        If j = 0 Then
+        ElseIf Not avFilenames(j - 1) Like "*" & CStr(avPromoList(i)) & "*" Then ' error promotion number save
+            sErrMsg = sErrMsg & avPromoList(i) & ": Not found" & vbNewLine
+            iErrCnt = iErrCnt + 1
+        End If
+    Next
+   
+    If file_existFolder("E:\Z. Temp_Folder\") = False Then MkDir ("E:\Z. Temp_Folder\")         ' folder creation
+    If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = False Then MkDir ("E:\Z. Temp_Folder\Promotion Extacted List\")
+    sTargetFolder = "E:\Z. Temp_Folder\Promotion Extacted List\" & Format(DateTime.Now, "YYYY-MM-DD HH.MM") & "_ClaimConfirmationEmailList\"
+    If file_existFolder(sTargetFolder) = False Then MkDir (sTargetFolder)
+       
+    If IsEmpty(avPathEmails) Then
+        MsgBox sErrMsg & vbNewLine & vbNewLine & "Total Not Found: " & iErrCnt & vbNewLine & "Total Found: " & iTotalCnt - iErrCnt, , "Search Result(" & Format((iTotalCnt - iErrCnt) / iTotalCnt, "##%;##%;#0%") & ")"   'fail to find Alll
+        Exit Sub
+    End If
+   
+    For i = LBound(avPathEmails) To UBound(avPathEmails) 'copy and paste the file
+        FileCopy avPathEmails(i), sTargetFolder & avFilenames(i)
+    Next
+
+
+    If Len(sErrMsg) > 1 Then MsgBox sErrMsg & vbNewLine & vbNewLine & "Total Not Found: " & iErrCnt & vbNewLine & "Total Found: " & iTotalCnt - iErrCnt, , "Search Result(" & Format((iTotalCnt - iErrCnt) / iTotalCnt, "##%;##%;#0%") & ")"   'fail to find Alll
+    If Len(sErrMsg) = 0 Then MsgBox "You found all files: Total " & iTotalCnt - iErrCnt & " files.", , "Search Result(Sucess 100%)"      'Sucess
+    If iTotalCnt - iErrCnt > 0 Then Shell "explorer """ & sTargetFolder & "", vbNormalFocus        'open the folder if there is any file searched.
+    Exit Sub
+ 
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(List_2Copy_ClaimEmail_ToFolder)", , "Exceptional Error!!"
+End Sub
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub List_3Copy_customerNotice_ToFolder()
+    Dim promoNo As Range, rngPromoNos As Range:       Set rngPromoNos = Selection
+    Dim sPath As String, sFileName As String
+    Dim sErrMsg As String, sTargetFolder As String, iErrCnt As Integer, iTotalCnt As Integer        ' variables for search result
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Delet the previous created folder / Select the range(promtoin number list)  / check the selected value if promotion No.
+    If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = True Then Call file_DelAllFoldersFiles("E:\Z. Temp_Folder\Promotion Extacted List", True)
+    If Selection.Cells.Count > 1 Then Set rngPromoNos = Selection.SpecialCells(xlCellTypeVisible)
+    If Not rngPromoNos.Cells(1, 1).Value Like "PL-?TS?-20######-####" Then
+        MsgBox "!!! What you selected value(" & rngPromoNos.Cells(1, 1).Value & ") is not Promotion No!!!", , "Wrong Choice!!!"
+        Exit Sub
+    End If
+   
+    '2. find the full path / creat folder / result info
+    On Error GoTo Escape:
+    For Each promoNo In rngPromoNos
+        sPath = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate - 1) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate - 2) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate - 3) & "\", CStr(promoNo), True)
+        sFileName = file_getFilenameFromPath(sPath)
+       
+        If file_existFolder("E:\Z. Temp_Folder\") = False Then MkDir ("E:\Z. Temp_Folder\")     'folder creation
+        If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List") = False Then MkDir ("E:\Z. Temp_Folder\Promotion Extacted List\")
+        sTargetFolder = "E:\Z. Temp_Folder\Promotion Extacted List\" & Format(DateTime.Now, "YYYY-MM-DD HH.MM") & "_CustomerNoticeEmailList\"
+        If file_existFolder(sTargetFolder) = False Then MkDir (sTargetFolder)
+       
+        iTotalCnt = iTotalCnt + 1   'count total numbe of promotion searching
+        If sPath <> "\No files match " Then
+            FileCopy sPath, sTargetFolder & sFileName   'copy and paste the file
+        ElseIf sPath = "\No files match " Then  ' error promotion number save
+            sErrMsg = sErrMsg & promoNo & " not found" & vbNewLine
+            iErrCnt = iErrCnt + 1
+        End If
+    Next
+   
+     '3. Result message inform
+    If Len(sErrMsg) > 1 Then MsgBox sErrMsg & vbNewLine & vbNewLine & "Total Not Found: " & iErrCnt & vbNewLine & "Total Found: " & iTotalCnt - iErrCnt, , "Search Result(" & Format((iTotalCnt - iErrCnt) / iTotalCnt, "##%;##%;#0%") & ")"   'fail to find Alll
+    If Len(sErrMsg) = 0 Then MsgBox "You found all files: Total " & iTotalCnt - iErrCnt & " files.", , "Search Result(Sucess 100%)"      'Sucess
+    If iTotalCnt - iErrCnt > 0 Then Shell "explorer """ & sTargetFolder & "", vbNormalFocus        'open the folder if there is any file searched.
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(List_3Copy_customerNotice_ToFolder)", , "Exceptional Error!!"
+End Sub
+
+
+'Updated 15-09-2021 by Joachim
+Sub List_4Z02_Template()
+    Application.DisplayAlerts = False:          Application.ScreenUpdating = False:         Application.Calculation = xlCalculationManual
+   
+    Dim avPromoList() As Variant
+    Dim rngSelected As Range:   Set rngSelected = Selection
+   
+    '1. Delet the previous created folder / Select the range(promtoin number list)  / check the selected value if promotion No.
+    If file_existFolder("E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer") = True Then Call file_DelAllFoldersFiles("E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer", True)
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" Then
+        MsgBox "!!! What you selected value(" & rngSelected.Cells(1, 1).Value & ") is not Promotion No!!!", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:       Application.ScreenUpdating = True:      Application.Calculation = xlCalculationAutomatic
+        Exit Sub
+    End If
+
+    Dim wkb1 As Workbook:       Set wkb1 = Workbooks.Add
+    Dim wks2 As Worksheet:      Set wks2 = wkb1.Sheets(1)     ' past sheet
+   
+    Workbooks.Open filename:=file_rawFilePath(8)
+    Dim wks1 As Worksheet:      Set wks1 = Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Worksheets(1)  ' copy sheet
+   
+   
+    ' to make the criteria for advanced filter
+   rngSelected.Copy
+   wks2.Range("A2").PasteSpecial xlPasteValues
+   wks2.Range("A1").Value = "Promotion No"
+           
+   Call data_cpFilteredRng(data_lastRowRng(wks1, "d", "bm", "d", 1), data_lastRowRng(wks2, "a", "a", "a", 1), wks2.Range("c2"), True, "D,M,N,V,T,AI,AT,AZ")
+           
+    With wks2
+        .columns("A:A").Delete
+        .columns("B:B").Insert Shift:=xlToRight
+        .columns("F:F").Cut .Range("B1")
+        .columns("F:F").Delete Shift:=xlToLeft
+        .columns("I:I").Cut .Range("K1")
+        .columns("D:E").NumberFormat = "m/d/yyyy"
+        .Range("B2").Value = "Customer"
+        .Range("D2").Value = "Period From"
+        .Range("E2").Value = "Period To"
+        .Range("F2").Value = "Model"
+        .Range("G2").Value = "D/C Per Unit"
+        .Range("I2").Value = "Actual Sell-out Qty"
+        .Range("J2").Value = "Support Amount"
+        .Range("K2").Value = "Promotion Detail"
+        'data_lastRowRng(wks2, "k", "k", "b", 3).HorizontalAlignment = xlLeft
+        .columns("B:K").AutoFit
+        .Range("B2").CurrentRegion.BorderAround Weight:=xlThin
+        .Range("B2:K2").Borders(xlEdgeBottom).Weight = xlThin
+        .Range("B2:K2").Interior.Color = RGB(217, 217, 217)
+        .Range("B2:K2").Font.Bold = True
+        data_lastRowRng(wks2, "b", "k", "b", 3).Interior.Color = RGB(255, 255, 204)
+        data_lastRowRng(wks2, "b", "k", "b", 2).Font.Name = "Arial Narrow"
+        data_lastRowRng(wks2, "i", "i", "b", 3).Interior.Color = RGB(257, 178, 158)
+    End With
+        'conditional formatting
+    With data_lastRowRng(wks2, "b", "k", "b", 2)
+        .FormatConditions.Add Type:=xlExpression, Formula1:="=$B2<>$C2"
+        .FormatConditions(1).Borders(xlRight).LineStyle = xlContinuous
+        .FormatConditions.Add Type:=xlExpression, Formula1:="=$B2<>$B3"
+        .FormatConditions(2).Borders(xlBottom).LineStyle = xlContinuous
+    End With
+    With data_lastRowRng(wks2, "c", "k", "b", 2)
+        .FormatConditions.Add Type:=xlExpression, Formula1:="=$C2<>$C3"
+        .FormatConditions(3).Borders(xlBottom).LineStyle = xlContinuous
+    End With
+
+   
+    Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close savechanges:=False
+   
+    Dim dept As String:  dept = wks2.Range("H3").Value
+    Dim Customer As String:  Customer = wks2.Range("B3").Value
+    wks2.Range("H1").EntireColumn.Delete
+    wks2.Name = "No Sellout data"
+    data_lastRowRng(wks2, "i", "i", "b", 3).Formula = "=H3*G3"
+   
+   
+   
+    Call data_cpByCols(wks2, "b,c,d,e,i", 2, wks2, "o,p,q,r,s", False)  'skopiowanie kolumn  B,C,D,E,I
+    data_lastRowRng(wks2, "o", "s", "o", 3).RemoveDuplicates columns:=Array(1, 2, 3, 4, 5), Header:=xlNo 'usuniecie duplikatow
+    data_lastRowRng(wks2, "s", "s", "s", 3).Formula = "=sumif(" & data_lastRowRng(wks2, "c", "c", "b", 3).Address & ",P3," & data_lastRowRng(wks2, "i", "i", "b", 3).Address & ")" 'wklejenie formuly w kolumnie S
+    wks2.Range("O2").CurrentRegion.Borders(xlEdgeBottom).Weight = xlThin
+    wks2.Range("O2").CurrentRegion.Borders(xlEdgeRight).Weight = xlThin
+    wks2.columns("O:S").AutoFit
+   
+   
+    Dim filename As String:        filename = Customer & "_" & dept & "_No Sellout Data_" & Format(Now, "YYYYMMDD HHMM") & ".xlsx"
+    If file_existFolder("E:\Z. Temp_Folder") = False Then MkDir ("E:\Z. Temp_Folder")
+    If file_existFolder("E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer") = False Then MkDir ("E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer")
+    wkb1.SaveAs filename:="E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer\" & filename
+   
+
+   
+    'Adding request detail to column I
+    Dim sPath As String: sPath = file_mostRecentFile("W:\10. Raw Data\SPMS_01. Promotion Registered List Inquiry", "Y202?_from*")
+    Dim sFileName As String: sFileName = file_getFilenameFromPath(sPath)
+   
+    Workbooks.Open sPath
+    Set wks1 = Workbooks(sFileName).Sheets(1)
+    Set wks2 = Workbooks(filename).Sheets(1)
+    Call data_vbaVlookup(data_lastRowRng(wks2, "c", "c", "c", 3), data_lastRowRng(wks1, "d", "az", "d", 2), 49, 7)
+    Workbooks(sFileName).Close False
+    wks2.Range("G2").Value = "D/C Per Unit"
+    wks2.Range("I2").Value = "Support Amount"
+    wks2.Range("J2").Value = "Promotion Detail"
+    data_lastRowRng(wks2, "f", "f", "b", 2).Copy
+    data_lastRowRng(wks2, "i", "j", "b", 2).PasteSpecial xlPasteFormats
+    data_lastRowRng(wks2, "h", "h", "b", 3).Interior.Color = RGB(257, 178, 158)
+    data_lastRowRng(wks2, "i", "i", "b", 3).Formula = "=H3*G3"
+    data_lastRowRng(wks2, "j", "j", "b", 3).HorizontalAlignment = xlLeft
+    wks2.columns("b:j").AutoFit
+    wks2.Range("B2").CurrentRegion.Borders(xlEdgeRight).Weight = xlThin
+       
+   
+    Dim answer As Integer: answer = MsgBox("Do you want to create an email?", vbQuestion + vbYesNo + vbDefaultButton2, "Email sending")
+   
+    If answer = vbYes Then
+        'save img
+        Call saveImg(data_lastRowRng(wks2, "b", "j", "b", 2).Address, "NoSelloutTemplate")
+       
+        wks2.Range("Z1").Value = file_mostRecentFile("E:\Z. Temp_captureForEmail\", "NoSelloutTemplate_*")
+        wks2.Range("Z2").Formula = "=""<p>Szanowni Panstwo, <br><br>Prosimy o przeslanie danych odsprzedazowych dla zalaczonych promocji.<br><br></p><p><img width='""&LEFT(RIGHT($Z1,LEN($Z1)-FIND(""_"",$Z1,FIND(""_"",$Z1)+1)),FIND(""_"",RIGHT($Z1,LEN($Z1)-FIND(""_"",$Z1,FIND(""_"",$Z1)+1)))-1)&""' height='""&LEFT(RIGHT($Z1,LEN($Z1)-FIND(""_"",$Z1,FIND(""_"",$Z1,FIND(""_"",$Z1)+1)+1)),FIND(""_"",RIGHT($Z1,LEN($Z1)-FIND(""_"",$Z1,FIND(""_"",$Z1,FIND(""_"",$Z1)+1)+1)))-1)&""' src='""&$Z1&""'> </p>"""
+       
+       
+        Dim subject As String: subject = Customer & "_" & dept & "_" & "Prosba o dane odsprzedazowe"
+        Dim body As String: body = wks2.Range("Z2").Value
+        wks2.Range("Z1").EntireColumn.Delete
+       
+        Call epEmail("", subject, body, "No")
+    Else
+    End If
+       
+    Workbooks(filename).Save
+
+   
+    wkb1.Close savechanges:=False
+    Shell "explorer.exe" & " " & "E:\Z. Temp_Folder\Promotion No Sellout Data Template for Customer", vbNormalFocus
+   
+    Call data_defaultApp
+    Exit Sub
+errHandling:
+    MsgBox "Please capture this message box and inform sales Admin team" & vbNewLine & vbNewLine & vbNewLine
+    Call data_defaultApp
+End Sub
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub List_5Copy_RPA_CN_ToFolder()
+    Dim promoNo As Range, rngPromoNos As Range:      Set rngPromoNos = Selection
+    Dim sPath As String, sFileName As String
+    Dim sErrMsg As String, sTargetFolder As String, iErrCnt As Integer, iTotalCnt As Integer, i As Integer      'variables for search result
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Delet the previous created folder / Select the range(promtoin number list)  / check the selected value if promotion No.
+    If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List\") = False Then Call file_DelAllFoldersFiles("E:\Z. Temp_Folder\Promotion Extacted List\", True)
+    If Selection.Cells.Count > 1 Then Set rngPromoNos = Selection.SpecialCells(xlCellTypeVisible)
+    If Not rngPromoNos.Cells(1, 1).Value Like "CN######" Then
+        MsgBox "!!! What you selected value(" & rngPromoNos.Cells(1, 1).Value & ") is not Credit Note No. !!!", vbInformation, "Wrong Choice!!!"
+        Exit Sub
+    End If
+   
+    '2. find the full path / creat folder / result info
+    On Error GoTo Escape:
+    For Each promoNo In rngPromoNos
+        sPath = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA\" & CStr(currDate) & "\", CStr(promoNo), True)     ' check the first folder
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA\" & CStr(currDate - 1) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA_archived\" & CStr(currDate) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA_archived\" & CStr(currDate - 1) & "\", CStr(promoNo), True)
+        If sPath = "\No files match " Then sPath = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA_archived\" & CStr(currDate - 2) & "\", CStr(promoNo), True)
+        sFileName = file_getFilenameFromPath(sPath)
+       
+        If file_existFolder("E:\Z. Temp_Folder\") = False Then MkDir ("E:\Z. Temp_Folder\")         'folder creation
+        If file_existFolder("E:\Z. Temp_Folder\Promotion Extacted List\") = False Then MkDir ("E:\Z. Temp_Folder\Promotion Extacted List\")
+        sTargetFolder = "E:\Z. Temp_Folder\Promotion Extacted List\" & Format(DateTime.Now, "YYYY-MM-DD_HHMMSS") & "_RPA_CN_List\"
+        If file_existFolder(sTargetFolder) = False Then MkDir (sTargetFolder)
+       
+        iTotalCnt = iTotalCnt + 1   'count total numbe of promotion searching
+        If sPath <> "\No files match " Then FileCopy sPath, sTargetFolder & sFileName   'copy and paste the file
+        If sPath = "\No files match " Then  ' error promotion number save
+            sErrMsg = sErrMsg & promoNo & " : Not found" & vbNewLine
+            iErrCnt = iErrCnt + 1
+        End If
+    Next
+   
+    '3. Result message inform
+    If Len(sErrMsg) > 1 Then MsgBox sErrMsg & vbNewLine & vbNewLine & "Total Not Found: " & iErrCnt & vbNewLine & "Total Found: " & iTotalCnt - iErrCnt, , "Search Result(" & Format((iTotalCnt - iErrCnt) / iTotalCnt, "##%;##%;#0%") & ")"   'fail to find Alll
+    If Len(sErrMsg) = 0 Then MsgBox "You found all files: Total " & iTotalCnt - iErrCnt & " files.", , "Search Result(Sucess 100%)"      'Sucess
+    If iTotalCnt - iErrCnt > 0 Then Shell "explorer """ & sTargetFolder & "", vbNormalFocus        'open the folder if there is any file searched.
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(List_5Copy_RPA_CN_ToFolder)", , "Exceptional Error!!"
+End Sub
+
+'#######################  SearchPromo/PGMNo ############################
+
+Sub ByPromoNo_1AAI()
+    Application.DisplayAlerts = False
+   
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(1)
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)       'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" And Not avPromoList(0) Like "PL-##########" Then   'checking the selection
+        MsgBox "!!! What you selected value(" & avPromoList(0) & ") is not Promotion No/PGM No. !!!", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:               Exit Sub
+    End If
+   
+    '2. autofilter based on array
+    On Error GoTo Escape:
+    Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("b5").Select:                ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("b4:w4").AutoFilter
+        If .FilterMode Then .ShowAllData
+   
+        If avPromoList(0) Like "PL-?TS?-20######-####" Then .Range("b4:w4").AutoFilter Field:=4, Criteria1:=avPromoList, Operator:=xlFilterValues
+        If avPromoList(0) Like "PL-##########" Then .Range("b4:w4").AutoFilter Field:=6, Criteria1:=avPromoList, Operator:=xlFilterValues
+    End With
+    Application.DisplayAlerts = True:           Exit Sub
+   
+Escape:                 frmErrorFileLocation.Show:          Application.DisplayAlerts = True
+End Sub
+
+Sub ByPromoNo_2Claim()
+    Application.DisplayAlerts = False
+   
+    Dim avPromoList() As Variant, rngSelected As Range:    Set rngSelected = Selection
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(2)
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" And Not avPromoList(0) Like "PL-##########" Then   'checking the selection
+        MsgBox "!!! What you selected value(" & avPromoList(0) & ") is not Promotion No/PGM No. !!!", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:           Exit Sub
+    End If
+           
+    '2. autofilter based on array
+    On Error GoTo Escape:
+    Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("a2").Select:                ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("a1:ai1").AutoFilter
+        If .FilterMode Then .ShowAllData
+           
+        If avPromoList(0) Like "PL-?TS?-20######-####" Then .Range("a1:ai1").AutoFilter Field:=35, Criteria1:=avPromoList, Operator:=xlFilterValues
+        If avPromoList(0) Like "PL-##########" Then .Range("a1:ai1").AutoFilter Field:=12, Criteria1:=avPromoList, Operator:=xlFilterValues
+    End With
+    Application.DisplayAlerts = True:           Exit Sub
+   
+Escape:                     frmErrorFileLocation.Show:          Application.DisplayAlerts = True
+End Sub
+
+Sub ByPromoNo_3PRLI()
+    Application.DisplayAlerts = False
+   
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(8)
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)         'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" Then   'checking the selection
+        MsgBox "!!! What you selected value(" & avPromoList(0) & ") is not Promotion No. Only promotion No base search is possible", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:           Exit Sub
+    End If
+   
+    '2. autofilter based on array
+    On Error GoTo Escape:
+    Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("a2").Select:        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("d1:bm1").AutoFilter
+        If .FilterMode Then .ShowAllData
+       
+        If avPromoList(0) Like "PL-?TS?-20######-####" Then .Range("D1:bm1").AutoFilter Field:=1, Criteria1:=avPromoList, Operator:=xlFilterValues
+    End With
+    Application.DisplayAlerts = True:           Exit Sub
+   
+Escape:                     frmErrorFileLocation.Show:          Application.DisplayAlerts = True
+End Sub
+
+
+Sub ByPromoNo_7originalAAI()
+    Application.DisplayAlerts = False
+   
+    Dim avPromoList() As Variant, rngSelected As Range:      Set rngSelected = Selection
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(1)
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" Then
+        MsgBox "!!! What you selected value(" & avPromoList(0) & ") is not Promotion No. Only promotion No base search is possible", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:       Exit Sub
+    End If
+   
+    '2. autofilter based on array
+    On Error GoTo Escape
+    Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("b5").Select:        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("b4:w4").AutoFilter
+        If .FilterMode Then .ShowAllData
+       
+       If avPromoList(0) Like "PL-?TS?-20######-####" Then .Range("b4:w4").AutoFilter Field:=21, Criteria1:=avPromoList, Operator:=xlFilterValues
+    End With
+    Application.DisplayAlerts = True:               Exit Sub
+   
+Escape:             frmErrorFileLocation.Show:             Application.DisplayAlerts = True
+End Sub
+
+Sub ByPromoNo_8originalPRLI()
+    Application.DisplayAlerts = False
+   
+    Dim avPromoList() As Variant, rngSelected As Range:     Set rngSelected = Selection
+    Dim msFilePath As String:       msFilePath = file_rawFilePath(8)
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)      'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-?TS?-20######-####" Then
+        MsgBox "!!! What you selected value(" & avPromoList(0) & ") is not Promotion No. Only promotion No base search is possible", , "Wrong Choice!!!"
+        Application.DisplayAlerts = True:       Exit Sub
+    ElseIf rngSelected.Count - 1 > 10 Then
+        MsgBox "!!! What you selected values are over 10 cells. Please use 'list extract to Folder' function!!!", vbInformation, "Too many values(Maximum 10)"
+        Exit Sub
+    End If
+   
+    '2. autofilter based on array
+    Workbooks.Open filename:=msFilePath
+    With Workbooks(file_getFilenameFromPath(msFilePath)).Worksheets(1)
+        .Range("a2").Select:        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("d1:bm1").AutoFilter
+        If .FilterMode Then .ShowAllData
+       
+        If avPromoList(0) Like "PL-?TS?-20######-####" Then .Range("D1:bm1").AutoFilter Field:=54, Criteria1:=avPromoList, Operator:=xlFilterValues
+    End With
+    Application.DisplayAlerts = True:               Exit Sub
+   
+Escape:             frmErrorFileLocation.Show:             Application.DisplayAlerts = True
+End Sub
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub ByPromoNo_4Dir()
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim i As Integer, sPathEmail As String
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)     'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):       avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-????-20######-####" Then
+        MsgBox "!!! What you selected(" & avPromoList(0) & ") is not Promotion No. Only promotion No base search is possible", , "Wrong Choice!!!"
+        Exit Sub
+    ElseIf rngSelected.Count - 1 > 10 Then
+        MsgBox "!!! What you selected values are over 10 cells. Please use 'list extract to Folder' function!!!", vbInformation, "Too many values(Maximum 10)"
+        Exit Sub
+    End If
+   
+    '2. find the full path / Open Email / result info
+    On Error GoTo Escape
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        If avPromoList(i) Like "PL-????-20######-####" Then
+            sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate) & "_System\", CStr(avPromoList(i)), True)
+            If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 1) & "_System\", CStr(avPromoList(i)), True)
+            If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 2) & "_System\", CStr(avPromoList(i)), True)
+            If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. PromoConfirm_archived\" & CStr(currDate - 3) & "_System\", CStr(avPromoList(i)), True)
+            If sPathEmail <> "\No files match " Then Shell "rundll32.exe url.dll,FileProtocolHandler " & sPathEmail, vbNormalFocus
+            If sPathEmail = "\No files match " Then MsgBox "Selected Promotion No.(" & avPromoList(i) & ") cannot be found" & vbNewLine & vbNewLine & "!! If the Promotion approved recently, please ask Sales Admin to update the file list.", , "Resut(Not found)"
+        Else
+            MsgBox "!!! What you selected value(" & avPromoList(i) & ") is not Promotion No. !!!", , "Wrong Choice!!!"
+        End If
+    Next
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(ByPromoNo_4Dir)", , "Exceptional Error!!"
+End Sub
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub byPromoNo_5ClaimEmail()
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim i As Integer, sPathEmail As String
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)     'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):       avPromoList = data_mulitCellToArray(rngSelected)    'selected rng to array
+    If Len(avPromoList(0)) < 4 Then
+        MsgBox "!!! Please select the searching value longer than 4 letters!!!", , "Not allow to search!!!"
+        Exit Sub
+    ElseIf rngSelected.Count - 1 > 10 Then
+        MsgBox "!!! What you selected values are over 10 cells. Please use 'list extract to Folder' function!!!", vbInformation, "Too many values(Maximum 10)"
+        Exit Sub
+    End If
+   
+    '2. find the full path / Open Email / result info
+    On Error GoTo Escape
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate - 1) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate - 2) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. Claim_APCN_archived\" & CStr(currDate - 3) & "\", CStr(avPromoList(i)), True)
+       
+        If sPathEmail <> "\No files match " Then Shell "rundll32.exe url.dll,FileProtocolHandler " & sPathEmail, vbNormalFocus
+        If sPathEmail = "\No files match " Then MsgBox "Selected value(" & avPromoList(i) & ") cannot be found" & vbNewLine & vbNewLine & "!! If the Promotion settled recently, please ask Sales Admin to update the file list.", , "Resut(Not found)"
+    Next
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(byPromoNo_5ClaimEmail)", , "Exceptional Error!!"
+End Sub
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub byPromoNo_6customerNotice()
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim i As Integer, sPathEmail As String
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)     'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)        'selected rng to array
+    If Not avPromoList(0) Like "PL-????-20######-####" Then
+        MsgBox "!!! What you selected(" & avPromoList(0) & ") is not Promotion No. Only promotion No base search is possible", , "Wrong Choice!!!"
+        Exit Sub
+    End If
+   
+    '2. find the full path / Open Email / result info
+    On Error GoTo Escape
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate - 1) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("W:\10. Raw Data\00. CustomerNotice_archived\" & CStr(currDate - 2) & "\", CStr(avPromoList(i)), True)
+       
+        If sPathEmail <> "\No files match " Then Shell "rundll32.exe url.dll,FileProtocolHandler " & sPathEmail, vbNormalFocus
+        If sPathEmail = "\No files match " Then MsgBox "Selected Promotion No.(" & avPromoList(i) & ") cannot be found" & vbNewLine & vbNewLine & "!! If the Promotion approved recently, please ask Sales Admin to update the file list.", , "Resut(Not found)"
+    Next
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(byPromoNo_6customerNotice)", , "Exceptional Error!!"
+End Sub
+
+
+'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+Sub ByPromoNo9_ByCreditNoteNo_Dir()
+    Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
+    Dim i As Integer, sPathEmail As String
+    Dim currDate As String: currDate = Format(Now, "yyyy")
+   
+    '1. Select the range(promtoin number list)  / check the selected value if promotion No.
+    If rngSelected.Count > 1 Then Set rngSelected = rngSelected.SpecialCells(xlCellTypeVisible)     'in case of multi selection
+    ReDim avPromoList(rngSelected.Count - 1):    avPromoList = data_mulitCellToArray(rngSelected)       'selected rng to array
+    If Not avPromoList(i) Like "CN######" Then
+        MsgBox "!!! What you selected value(" & avPromoList(i) & ") is not Credit Note No. !!!", vbInformation, "Wrong Choice!!!"
+        Exit Sub
+    ElseIf rngSelected.Count - 1 > 10 Then
+        MsgBox "!!! What you selected values are over 10 cells. Please use 'list extract to Folder' function!!!", vbInformation, "Too many values(Maximum 10)"
+        Exit Sub
+    End If
+   
+    On Error GoTo Escape
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        sPathEmail = file_mostRecentFile("X:\10. Raw Data\00. CN by RPA\" & CStr(currDate) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("Y:\10. Raw Data\00. CN by RPA\" & CStr(currDate - 1) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("Y:\10. Raw Data\00. CN by RPA\" & CStr(currDate - 2) & "\", CStr(avPromoList(i)), True)
+        If sPathEmail = "\No files match " Then sPathEmail = file_mostRecentFile("Y:\10. Raw Data\00. CN by RPA\" & CStr(currDate - 3) & "\", CStr(avPromoList(i)), True)
+       
+        If sPathEmail <> "\No files match " Then Shell "rundll32.exe url.dll,FileProtocolHandler " & sPathEmail, vbNormalFocus
+        If sPathEmail = "\No files match " Then MsgBox "Selected CN No.(" & avPromoList(i) & ") cannot be found" & vbNewLine & vbNewLine & "!!(1) If the CN was settled recently, please ask Sales Admin to update the file list. " & vbNewLine & "!!(2) If urgent, please request Order Desk team.", , "Resut(Not found)"
+    Next
+    Exit Sub
+   
+Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(ByPromoNo9_ByCreditNoteNo_Dir)", , "Exceptional Error!!"
+End Sub
+
+'#######################  Tool ############################
+Sub Tool_1PrintPreview()
+
+    With ActiveSheet.PageSetup
+        .LeftMargin = Application.InchesToPoints(0)
+        .RightMargin = Application.InchesToPoints(0)
+        .TopMargin = Application.InchesToPoints(0)
+        .BottomMargin = Application.InchesToPoints(0)
+        .HeaderMargin = Application.InchesToPoints(0)
+        .FooterMargin = Application.InchesToPoints(0)
+       
+        .CenterHorizontally = True
+        .CenterVertically = True
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = 1
+       
+        .Orientation = xlLandscape
+    End With
+    Selection.PrintPreview
+       
+End Sub
+
+Sub Tool_2SelectedRangeToImage()
+   
+    Dim picRange As Shape
+    Dim myChart As Chart, picH As Double, picW As Double
+    Dim fileSaveName As Variant
+   
+    'Create temporary chart
+    Dim rngSelection As Range:      Set rngSelection = Selection
+        rngSelection.CopyPicture xlScreen, xlPicture
+    Dim newWs As Worksheet:     Set newWs = ActiveWorkbook.Sheets.Add
+        newWs.Paste
+       
+    'check image height and width
+    Set picRange = newWs.Shapes.Item(1)
+        With picRange
+            picH = .Height
+            picW = .Width
+            .Delete
+        End With
+   
+        With newWs.Shapes.AddChart2
+            .Height = picH
+            .Width = picW
+        End With
+   
+    'Paste range as image to chart
+    Set myChart = newWs.Shapes.Item(1).Chart
+        myChart.ChartArea.Select
+        myChart.Paste
+               
+    'Save chart image to file
+        fileSaveName = Application.GetSaveAsFilename(fileFilter:="Image (*.jpg), *.jpg")
+        If fileSaveName <> False Then
+          myChart.Export filename:=fileSaveName, FilterName:="jpg"
+        End If
+     
+    'Clean up
+    Application.DisplayAlerts = False
+        newWs.Delete
+End Sub
+
+SA2 LEader
+
+1.
+Option Explicit
+
+
+Sub Shared_Basic_Ribbon_Click2(control As IRibbonControl)
+    Select Case control.Tag
+   
+        Case "reportSD_1": Call report_2SOA
+        Case "reportSD_2": Call report_1RealTime
+        Case "reportSD_3":    Call report_3Master
+        Case "reportSD_4":    Call report_4Meeting
+        Case "reportSD_5":    Call report_5Aging
+                       
+    End Select
+   
+End Sub
+
+
+2.
+Option Explicit
+
+'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+'#######################  Report ############################
+Sub report_1RealTime()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(31):          Exit Sub
+Escape:                     frmErrorFileLocation.Show
+End Sub
+Sub report_2SOA()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(32):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+Sub report_3Master()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(33):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+Sub report_4Meeting()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(34):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+Sub report_5Aging()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(35):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+
+
+
+SA3 Only
+
+1.
+
+Option Explicit
+
+
+Sub Shared_Basic_Ribbon_Click3(control As IRibbonControl)
+    Select Case control.Tag
+        Case "InvoiceMgt_1":    Call invMgtFile_1MSRG
+        Case "InvoiceMgt_2":    Call invMgtFile_2CEURO
+        Case "InvoiceMgt_3":    Call invMgtFile_3CEOthers
+        Case "InvoiceMgt_4":    Call invMgtFile_4MCITAE
+       
+        Case "SATeamTool1":    Call Tool_3NewEmailCN
+        Case "SATeamTool2": Call rawFile_5PRA
+        Case "SATeamTool3": Call rawFile_6Adjust
+        Case "SATeamTool4": Call commFile_7autoFilter
+        Case "SATeamTool5": Call GetSalesCalculation_MultiSelection
+        Case "SATeamTool6": Call upload_EXPORT_LUMPSUM
+        Case "SATeamTool7": Call upload_EXPORT_FIXED
+        Case "SATeamTool8": Call system_01PRLI
+        Case "SATeamTool9": Call system_02PendingApproval
+        Case "SATeamTool10": Call system_03PromoFinalRequest
+       
+        Case "SAfile_1":    Call SAfile_1ManagingFile
+        Case "SAfile_2":    Call SAfile_2ToDoList
+        Case "SAfile_3":    Call SAfile_3Calendar
+       
+    End Select
+   
+End Sub
+
+
+2.
+
+
+Option Explicit
+
+Sub Tool_5ConsolidateFile()
+    Call data_defaultApp(False, False, False, False)
+   
+    Dim sPath As String, sFile As String
+    Dim wkb1 As Workbook, wkb2 As Workbook
+    Dim rngCpy As Range
+    Dim i As Integer, lr As Long
+    Dim ObjFso As Object:       Set ObjFso = CreateObject("Scripting.FileSystemObject")
+   
+       
+    Dim fd As FileDialog:       Set fd = Application.FileDialog(msoFileDialogFilePicker)
+   
+    With fd
+        ' 1. Select the files
+            .InitialFileName = "Z:\02. raw Data CPS\02_EDW_Model_Customer_Promotion" ' msoFileDialogViewList
+            .AllowMultiSelect = True
+            .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+            If .Show = 0 Then       ' not selected case
+                MsgBox "You have not selected any files"
+                Exit Sub
+            End If
+    End With
+           
+    On Error GoTo Escape:
+   
+    For i = 1 To fd.SelectedItems.Count
+        sPath = fd.SelectedItems.Item(i)
+        Workbooks.Open filename:=sPath
+        sFile = file_getFilenameFromPath(sPath)
+        Set wkb1 = Workbooks(sFile)
+       
+        With wkb1.Worksheets(1)
+            If .AutoFilterMode = False Then .Range("b4:z4").AutoFilter
+            If .FilterMode Then .ShowAllData
+           
+            'New file create
+            If i = 1 Then
+                Set wkb2 = Workbooks.Add
+                'If file_existFile("E:\Consolidated_Data.xlsx") = "E:\Consolidated_Data.xlsx" Then
+                Dim sSavePath As String:   sSavePath = "E:\Consolidated_Data_" & Format(Now(), "YYYYMMDD_hhmmss") & ".xlsx"
+                wkb2.SaveAs sSavePath
+                .Range("b4:z4").Copy wkb2.Worksheets(1).Range("b1")
+            End If
+           
+            ' filter the data
+            .Range("b4:z4").AutoFilter Field:=4, Criteria1:="LTV", Operator:=xlFilterValues
+        End With
+           
+        With wkb2.Worksheets(1)
+            'Copy and past the data
+            Set rngCpy = data_lastRowRng(wkb1.Worksheets(1), "b", "z", "b", 5)
+            lr = .Cells(.Rows.Count, "b").End(xlUp).Row + 1
+            Call data_cp(rngCpy, .Range("b" & lr), True, True)
+       
+            'close wkb and clear memory
+            wkb1.Close savechanges:=False
+            Set wkb1 = Nothing
+        End With
+    Next
+   
+   
+   
+   
+   
+    Call data_defaultApp
+    Exit Sub
+   
+Escape:
+    MsgBox "error" & Err.Description
+    Call data_defaultApp
+End Sub
+
+
+image.png
+
+   
+3.
+    Option Explicit
+
+
+Sub GetSalesCalculation_MultiSelection()
+
+    Call data_defaultApp(False, False)
+   
+    '=================================PRLI
+   
+    Dim rngSelected As Range, avPromoList() As Variant, i As Variant
+   
+    If Selection.Count > 1 Then
+        Set rngSelected = Selection.SpecialCells(xlCellTypeVisible)
+    Else
+        Set rngSelected = Selection
+    End If
+   
+    ReDim avPromoList(rngSelected.Count - 1)   'selected rng to array
+    avPromoList = data_mulitCellToArray(rngSelected)
+   
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        If avPromoList(i) Like "PL-*TSI-20######-####" Then  ' checking if selection is
+        'ElseIf avPromoList(i) Like "PL-##########" Then
+        Else: MsgBox "One element from the selection does not meet the conditions or it is incorrectly formulated." & vbNewLine & vbNewLine & "Please select only the TTSI or NTSI Promotion No and make sure the Promotion No is correct.", , "Wrong Choice!"
+            Exit Sub
+        End If
+    Next i
+   
+    On Error GoTo Escape
+    Workbooks.Open filename:="W:\10. Raw Data\VBA Template\Sales Calculation Template.xlsm"
+    On Error GoTo 0
+   
+    Dim wks2 As Worksheet:      Set wks2 = ActiveWorkbook.Sheets("Calculation")
+    Dim wks3 As Worksheet:      Set wks3 = ActiveWorkbook.Sheets("Master Data")
+    Dim wks5 As Worksheet:      Set wks5 = ActiveWorkbook.Sheets("Raw Data")
+   
+   
+    For i = LBound(avPromoList) To UBound(avPromoList)
+        wks3.Range("A" & i + 2).Value = avPromoList(i)
+    Next i
+   
+    Workbooks.Open filename:=file_rawFilePath(8)
+   
+    Dim wks1 As Worksheet:      Set wks1 = Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Worksheets(1)
+           
+    With wks1
+        .Range("a2").Select
+        ActiveWindow.FreezePanes = True
+        If .AutoFilterMode = False Then .Range("d1:bm1").AutoFilter
+        If .FilterMode Then .ShowAllData
+
+        If avPromoList(0) Like "PL-*TSI-20######-####" Then
+            .Range("D1:bm1").AutoFilter Field:=1, Criteria1:=avPromoList, Operator:=xlFilterValues
+            On Error GoTo Escape2
+            For i = LBound(avPromoList) To UBound(avPromoList)
+                If Not .Range("D:D").Find(avPromoList(i)).Offset(0, 27).Value = "%" Then
+                    MsgBox "One element from the selection does not meet the conditions or can not be found. " & vbNewLine & vbNewLine & "Please only select % calculation method promotion and make sure the Promotion No is correct.", , "Wrong Choice!"
+                    Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close False
+                    Workbooks("Sales Calculation Template.xlsm").Close False
+                    Exit Sub
+                End If
+            Next i
+            On Error GoTo 0
+        'ElseIf avPromoList(0) Like "PL-##########" Then
+            '.Range("D1:bm1").AutoFilter Field:=6, Criteria1:=avPromoList, Operator:=xlFilterValues
+            'On Error GoTo Escape2
+            'For i = LBound(avPromoList) To UBound(avPromoList)
+                'If Not .Range("D:D").Find(avPromoList(i)).Offset(0, 22).Value = "%" Then
+                    'MsgBox "One element from the selection does not meet the conditions. " & vbNewLine & "Please only select % calculation method promotion.", , "Wrong Choice!"
+                    'Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close False
+                    'Workbooks("Sales Calculation Template.xlsm").Close False
+                    'Exit Sub
+                'End If
+            'Next i
+            'On error GoTo 0
+        End If
+    End With
+   
+    wks2.Range("A1").CurrentRegion.Offset(2, 0).Clear
+   
+    Call data_cpByCols(wks1, "d,m,n,t,u,v,ai", 2, wks2, "a,b,c,d,e,f,g", False)
+    Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close False
+   
+    '=================================Gathering promotion period (months)
+   
+    Dim rng1 As Range: Set rng1 = data_lastRowRng(wks2, "b", "b", "b", 3)
+    Dim rng2 As Range: Set rng2 = data_lastRowRng(wks2, "c", "c", "c", 3)
+   
+    With wks3
+        .Range("A1").CurrentRegion.Offset(1, 0).Clear
+        .Range("E2") = WorksheetFunction.Min(rng1)
+        .Range("F2") = WorksheetFunction.Max(rng2)
+        .Range("E2:F2").NumberFormat = "m/d/yyyy"
+        .Range("G2") = "=YEAR(E2)"
+        .Range("B2") = "=IF(YEAR(TODAY())=G2,DATEDIF(E2,TEXT(TODAY(),""DD-MM-YYYY""),""M""),ROUND(YEARFRAC(E2,F2)*12,1))"
+       
+        Dim Lng As Byte: Lng = .Range("B2")
+        On Error GoTo Escape
+        .Range("I:I").Find(.Range("E2").Value).Offset(, 1).Copy .Range("C2")
+        On Error GoTo 0
+        If Lng > 1 Then
+            For i = 2 To Lng
+                .Range("I:I").Find(wks2.Range("B3").Value).Offset(i - 1, 1).Copy .Cells(Rows.Count, 3).End(xlUp).Rows.Offset(1, 0)
+            Next i
+        End If
+    End With
+   
+    '=================================User Form
+   
+    UserFormMonths.Show
+   
+    '=================================Sales report
+   
+    Dim Customer As Range: Set Customer = data_lastRowRng(wks2, "d", "d", "d", 3)
+    Dim months As Range: Set months = data_lastRowRng(wks3, "d", "d", "d", 2)
+    Dim wks4 As Worksheet
+   
+    Select Case wks3.Range("G2").Value
+        Case "2022"
+            Workbooks.Open filename:=file_rawFilePath(4)
+            Set wks4 = Workbooks(file_getFilenameFromPath(file_rawFilePath(4))).Worksheets(2)
+        Case "2021"
+            Workbooks.Open filename:=file_rawFilePath(7)
+             Set wks4 = Workbooks(file_getFilenameFromPath(file_rawFilePath(7))).Worksheets(2)
+    End Select
+   
+    data_defaultWks wks4
+
+    If months.Cells.Count > 1 Then
+        wks4.Range("A2:DK2").AutoFilter Field:=4, Operator:=xlFilterValues, Criteria1:=Split(Join(Application.Transpose(months), ","), ",")
+    Else
+        wks4.Range("A2:DK2").AutoFilter Field:=4, Criteria1:=wks3.Range("D2").Value
+    End If
+   
+    If Customer.Cells.Count > 1 Then
+        wks4.Range("A2:DK2").AutoFilter Field:=8, Operator:=xlFilterValues, Criteria1:=Split(Join(Application.Transpose(Customer), ","), ",")
+    Else
+        If wks2.Range("D3").Value = "MEDIA SATURN HOLDING POLSKA SP" Then
+            wks4.Range("A2:DK2").AutoFilter Field:=8, Criteria1:="MEDIA*"
+        Else
+            wks4.Range("A2:DK2").AutoFilter Field:=8, Criteria1:=wks2.Range("D3").Value
+        End If
+    End If
+   
+    wks5.Range("A1").CurrentRegion.Offset(1, 0).Clear
+    DoEvents
+    Call data_cpByCols(wks4, "b,c,d,e,f,g,h,i,j,k,m,o,p,q,r,s,t,ac,ag,ah,ak,al,am,an,cf", 3, wks5, "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y", True) 'kopiowanie wybranych kolumn z pliku Sales
+   
+    Select Case wks3.Range("G2").Value
+        Case "2022"
+            Workbooks(file_getFilenameFromPath(file_rawFilePath(4))).Close False 'close Sales file
+        Case "2021"
+            Workbooks(file_getFilenameFromPath(file_rawFilePath(7))).Close False 'close Sales file
+    End Select
+   
+   
+    '=================================Formula and formatting
+   
+    Dim rng3 As Range: Set rng3 = data_lastRowRng(wks2, "h", "h", "a", 3)
+    Dim rng4 As Range: Set rng4 = data_lastRowRng(wks2, "m", "m", "a", 3)
+   
+   
+   
+   
+    rng3.Formula = "=IF(E3=""Model Prefix"",SUMIFS('Raw Data'!W:W,'Raw Data'!P:P,Calculation!F3),IF(E3=""Division"",SUMIFS('Raw Data'!W:W,'Raw Data'!K:K,Calculation!F3), IF(E3=""Model"",SUMIFS('Raw Data'!W:W,'Raw Data'!S:S,Calculation!F3),IF(E3=""Prod Level1"",SUMIFS('Raw Data'!W:W,'Raw Data'!L:L,Calculation!F3), IF(E3=""Prod Level2"",SUMIFS('Raw Data'!W:W,'Raw Data'!M:M,Calculation!F3), IF(E3=""Prod Level3"",SUMIFS('Raw Data'!W:W,'Raw Data'!N:N,Calculation!F3), IF(E3=""Prod Level4"",SUMIFS('Raw Data'!W:W,'Raw Data'!O:O,Calculation!F3), """")))))))"
+    data_lastRowRng(wks2, "i", "i", "a", 3).Formula = "=IF(E3=""Model Prefix"",SUMIFS('Raw Data'!W:W,'Raw Data'!P:P,Calculation!F3,'Raw Data'!A:A,$I$2),IF(E3=""Division"",SUMIFS('Raw Data'!W:W,'Raw Data'!K:K,Calculation!F3,'Raw Data'!A:A,$I$2), IF(E3=""Model"",SUMIFS('Raw Data'!W:W,'Raw Data'!S:S,Calculation!F3,'Raw Data'!A:A,$I$2),IF(E3=""Prod Level1"",SUMIFS('Raw Data'!W:W,'Raw Data'!L:L,Calculation!F3,'Raw Data'!A:A,$I$2), IF(E3=""Prod Level2"",SUMIFS('Raw Data'!W:W,'Raw Data'!M:M,Calculation!F3,'Raw Data'!A:A,$I$2), IF(E3=""Prod Level3"",SUMIFS('Raw Data'!W:W,'Raw Data'!N:N,Calculation!F3,'Raw Data'!A:A,$I$2), IF(E3=""Prod Level4"",SUMIFS('Raw Data'!W:W,'Raw Data'!O:O,Calculation!F3,'Raw Data'!A:A,$I$2), """")))))))"
+    data_lastRowRng(wks2, "j", "j", "a", 3).Formula = "=IF(E3=""Model Prefix"",SUMIFS('Raw Data'!W:W,'Raw Data'!P:P,Calculation!F3,'Raw Data'!A:A,$J$2),IF(E3=""Division"",SUMIFS('Raw Data'!W:W,'Raw Data'!K:K,Calculation!F3,'Raw Data'!A:A,$J$2), IF(E3=""Model"",SUMIFS('Raw Data'!W:W,'Raw Data'!S:S,Calculation!F3,'Raw Data'!A:A,$J$2),IF(E3=""Prod Level1"",SUMIFS('Raw Data'!W:W,'Raw Data'!L:L,Calculation!F3,'Raw Data'!A:A,$J$2), IF(E3=""Prod Level2"",SUMIFS('Raw Data'!W:W,'Raw Data'!M:M,Calculation!F3,'Raw Data'!A:A,$J$2), IF(E3=""Prod Level3"",SUMIFS('Raw Data'!W:W,'Raw Data'!N:N,Calculation!F3,'Raw Data'!A:A,$J$2), IF(E3=""Prod Level4"",SUMIFS('Raw Data'!W:W,'Raw Data'!O:O,Calculation!F3,'Raw Data'!A:A,$J$2), """")))))))"
+    data_lastRowRng(wks2, "k", "k", "a", 3).Formula = "=IF(E3=""Model Prefix"",SUMIFS('Raw Data'!W:W,'Raw Data'!P:P,Calculation!F3,'Raw Data'!A:A,$K$2),IF(E3=""Division"",SUMIFS('Raw Data'!W:W,'Raw Data'!K:K,Calculation!F3,'Raw Data'!A:A,$K$2), IF(E3=""Model"",SUMIFS('Raw Data'!W:W,'Raw Data'!S:S,Calculation!F3,'Raw Data'!A:A,$K$2),IF(E3=""Prod Level1"",SUMIFS('Raw Data'!W:W,'Raw Data'!L:L,Calculation!F3,'Raw Data'!A:A,$K$2), IF(E3=""Prod Level2"",SUMIFS('Raw Data'!W:W,'Raw Data'!M:M,Calculation!F3,'Raw Data'!A:A,$K$2), IF(E3=""Prod Level3"",SUMIFS('Raw Data'!W:W,'Raw Data'!N:N,Calculation!F3,'Raw Data'!A:A,$K$2), IF(E3=""Prod Level4"",SUMIFS('Raw Data'!W:W,'Raw Data'!O:O,Calculation!F3,'Raw Data'!A:A,$K$2), """")))))))"
+    data_lastRowRng(wks2, "l", "l", "a", 3).Formula = "=IF(E3=""Model Prefix"",SUMIFS('Raw Data'!W:W,'Raw Data'!P:P,Calculation!F3,'Raw Data'!A:A,$L$2),IF(E3=""Division"",SUMIFS('Raw Data'!W:W,'Raw Data'!K:K,Calculation!F3,'Raw Data'!A:A,$L$2), IF(E3=""Model"",SUMIFS('Raw Data'!W:W,'Raw Data'!S:S,Calculation!F3,'Raw Data'!A:A,$L$2),IF(E3=""Prod Level1"",SUMIFS('Raw Data'!W:W,'Raw Data'!L:L,Calculation!F3,'Raw Data'!A:A,$L$2), IF(E3=""Prod Level2"",SUMIFS('Raw Data'!W:W,'Raw Data'!M:M,Calculation!F3,'Raw Data'!A:A,$L$2), IF(E3=""Prod Level3"",SUMIFS('Raw Data'!W:W,'Raw Data'!N:N,Calculation!F3,'Raw Data'!A:A,$L$2), IF(E3=""Prod Level4"",SUMIFS('Raw Data'!W:W,'Raw Data'!O:O,Calculation!F3,'Raw Data'!A:A,$L$2), """")))))))"
+   
+    rng4.Formula = "=H3*G3/100"
+   
+   
+    If wks2.Range("A4") <> 0 Then
+        wks2.Cells(Rows.Count, 8).End(xlUp).Rows.Offset(1, 0) = WorksheetFunction.Sum(rng3)
+        wks2.Cells(Rows.Count, 13).End(xlUp).Rows.Offset(1, 0) = WorksheetFunction.Sum(rng4)
+    End If
+   
+    With wks2
+        .Cells(Rows.Count, 13).End(xlUp).Rows.Font.Bold = True
+        .Cells(Rows.Count, 13).End(xlUp).Rows.Interior.Color = 65535
+        .columns("B:M").columns.AutoFit
+        data_lastRowRng(wks2, "g", "m", "h", 3).NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+        .Range("F1").Value = "Calculation period: " & wks3.Range("D2") & " - " & wks3.Cells(Rows.Count, 4).End(xlUp).Rows.Value
+        .Range("F1").Font.Color = -16777012
+        .columns("B:C").EntireColumn.Hidden = True
+        .columns("I:L").EntireColumn.Hidden = True
+    End With
+   
+    Dim l As Integer
+    For l = 1 To 4
+        If wks3.Cells(2, l + 11).Value = "O" Then
+        wks2.Cells(2, l + 8).EntireColumn.Hidden = False
+        End If
+    Next l
+   
+   
+     '=================================Creating photos
+   
+    Call pasteWorkssheetAsPng(data_lastRowRng(wks2, "a", "m", "m", 1), wks2.Range("O2"), True) 'converting table to photo
+    Call data_defaultApp(True, True, False)
+   
+    Exit Sub
+   
+      '=================================Error Handling
+   
+Escape:
+    Select Case Err.Number
+        Case 1004
+                MsgBox "It seems that we can not find a suitable file." & vbNewLine & vbNewLine & "Please contact Sales Admin Team.", , "Opps!"
+            Exit Sub
+        Case 91
+            MsgBox "One element from the selection does not meet the conditions. " & vbNewLine & vbNewLine & "Choose promotion not older than 2 years.", , "Wrong Choice!"
+            Workbooks("Sales Calculation Template.xlsm").Close False
+            Exit Sub
+        Case Else
+            MsgBox "An unexpected error has occurred. Please check with Sales Admin Team.", , "Opps!"
+            Workbooks("Sales Calculation Template.xlsm").Close False
+            Exit Sub
+    End Select
+   
+   
+Escape2:
+    MsgBox "One element from the selection does not meet the conditions. " & vbNewLine & vbNewLine & "Make sure the Promotion No is correct."
+    Workbooks("Sales Calculation Template.xlsm").Close False
+    Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close False
+   
+End Sub
+
+
+4.
+
+Option Explicit
+
+'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+
+'#######################  InvoiceMgtFile ############################ 4
+Sub invMgtFile_1MSRG()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(21):       Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+Sub invMgtFile_2CEURO()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(22):       Exit Sub
+Escape:             frmErrorFileLocation.Show
+End Sub
+Sub invMgtFile_3CEOthers()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(23):       Exit Sub
+Escape:             frmErrorFileLocation.Show
+End Sub
+Sub invMgtFile_4MCITAE()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(24):       Exit Sub
+Escape:             frmErrorFileLocation.Show
+End Sub
+
+
+'#######################  Tool ############################ 5 +1
+
+Sub rawFile_5PRA()
+    Application.DisplayAlerts = False:      On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(17):               Application.DisplayAlerts = True:       Exit Sub
+Escape:     frmErrorFileLocation.Show:      Application.DisplayAlerts = True
+End Sub
+
+Sub rawFile_6Adjust()
+    Application.DisplayAlerts = False
+    Dim sPath As String, sFile As String
+    With Application.FileDialog(msoFileDialogFilePicker)
+            .InitialFileName = "Y:\05. Working File\04. Adjustments"
+            .AllowMultiSelect = False
+            .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+            If .Show = 0 Then       ' not selected case
+                MsgBox "You have not selected any files"
+                Exit Sub
+            End If
+        sPath = .SelectedItems.Item(1)
+        sFile = Application.Substitute(sPath, "Y:\05. Working File\04. Adjustments", "")
+    End With
+   
+    Workbooks.Open filename:=sPath
+    Application.DisplayAlerts = True
+End Sub
+
+
+Sub commFile_7autoFilter()
+    On Error GoTo Escape:       frmAutofilterByPromo.Show:                  Exit Sub
+Escape:         frmErrorFileLocation.Show
+End Sub
+
+
+
+Sub Tool_3NewEmailCN()
+    Application.ScreenUpdating = False
+    Dim rngSelected As Range:   Set rngSelected = Selection
+    Dim sCustomer As String, sDept As String, sReasoncode As String
+   
+    If rngSelected.Value Like "PL-????-20######-####" Then
+        Workbooks.Open filename:=file_rawFilePath(8)
+        Dim wks1 As Worksheet:      Set wks1 = Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Worksheets(1)
+        Call data_defaultWks(wks1)
+        With wks1
+            .Range("D1:bm1").AutoFilter Field:=1, Criteria1:=rngSelected.Value, Operator:=1
+            Dim lr1 As Long: lr1 = .Cells(.Rows.Count, "d").End(xlUp).Row
+            sCustomer = .Cells(lr1, "t").Value
+            If Left(sCustomer, 6) = "MEDIA " Then sCustomer = "MSRG"
+            sDept = .Cells(lr1, "at").Value
+            sReasoncode = .Cells(lr1, "o").Value
+            .Cells(1, 1) = "TM CN_" & sCustomer & "_'ClaimNo'_" & rngSelected & "_" & sDept & " " & sReasoncode
+           
+            'wokring folder find as string
+            Dim vWorkingFolders, i As Long, sWorkingFolder As String
+            If sDept = "HE" Then
+                vWorkingFolders = file_aListFolders("Z:\01. CommonJob_Settlement\01_HE_Z02")
+                For i = LBound(vWorkingFolders) To UBound(vWorkingFolders)
+                    If vWorkingFolders(i) Like "*" & rngSelected & "*" Then sWorkingFolder = vWorkingFolders(i)
+                Next
+            ElseIf sDept = "HA" Then
+                vWorkingFolders = file_aListFolders("Z:\01. CommonJob_Settlement\02_HA_Z02")
+                For i = LBound(vWorkingFolders) To UBound(vWorkingFolders)
+                    If vWorkingFolders(i) Like "*" & rngSelected & "*" Then sWorkingFolder = vWorkingFolders(i)
+                Next
+            Else
+            End If
+           
+             .Range("a2").Value = sWorkingFolder
+             .Range("a3").Value = file_mostRecentFile(sWorkingFolder, "41_*.png", False)
+             .Range("a4").Value = file_mostRecentFile(sWorkingFolder, "42_*.png", False)
+            If file_existFolder("E:\Z. Temp_Folder") = False Then MkDir ("E:\Z. Temp_Folder")
+            If file_existFolder("E:\Z. Temp_Folder\TempFile_Python") = False Then MkDir ("E:\Z. Temp_Folder\TempFile_Python")
+            Call data_exportRng2TextFile(.Range("a1:a4"), "PromotionNo_EmailCN", "E:\Z. Temp_Folder\TempFile_Python")
+        End With
+        Workbooks(file_getFilenameFromPath(file_rawFilePath(8))).Close savechanges:=False
+        Call file_runPython(file_rawFilePath(101))
+    Else
+        MsgBox "You didn't select the Promotion No. Please select the Promotion Number and Try again."
+        Kill "E:\Z. Temp_Folder\TempFile_Python\PromotionNo_EmailCN.txt"
+        Call file_runPython(file_rawFilePath(101))
+    End If
+   
+    Application.ScreenUpdating = True
+End Sub
+
+
+
+'#######################  Python System ############################ 5
+Sub system_01PRLI()
+    Call file_runPython("Y:\08. TeamDevelopment\07. Python\01_systemAuto\01_System_PRLI.py")
+End Sub
+Sub system_02PendingApproval()
+    Call file_runPython("Y:\08. TeamDevelopment\07. Python\01_systemAuto\04_DQ_XXPPS_Kate.py")
+End Sub
+Sub system_03PromoFinalRequest()
+    Call file_runPython("Y:\08. TeamDevelopment\07. Python\01_systemAuto\05_PromoFinalRequest_Kate.py")
+End Sub
+
+'Sub system_04ContractSend()
+'    Dim rng As Range: Set rng = Selection
+'
+'    If rng Like "PL-?TS?-20######-####" Then
+'        rng.Copy
+'        Call file_runPython("Y:\08. TeamDevelopment\07. Python\01_systemAuto\18_AutoContracting_BtnCode.py")
+'        Else
+'        MsgBox "What you selected it not Promotion No", vbCritical, "Wrong Choice!"
+'    End If
+'End Sub
+
+Sub upload_EXPORT_LUMPSUM()
+    Dim sTempFolder As String:      sTempFolder = "E:\Z. Temp_Folder\Promotion Request for Sales PGMUpload file"
+    If file_existFolder(sTempFolder) = False Then MkDir (sTempFolder)
+   
+    ActiveSheet.Range("A1:BG1").EntireColumn.Hidden = False
+   
+    If Application.CountIf([N2:N2000], "FIXED") >= 1 Then   ' Error Handling
+            MsgBox "Please input only LUMPSUM. There is Fixed PGM Type"
+            Exit Sub
+        ElseIf Application.CountIf([H2:H2000], "CZS") >= 1 Then
+            MsgBox "Please select only SAL. The list is included CZS AU"
+            Exit Sub
+        ElseIf Application.CountIf([AF2:AF2000], "BUYING_GROUP") >= 1 Then
+            MsgBox "Please select only BILL TO. The list is mixed with Buying Group."
+            Exit Sub
+        Else
+    End If
+   
+    Dim property
+    For Each property In Array("NTTSO", "NTTSI", "TT")
+        Range("A1:BG1").AutoFilter Field:=5, Criteria1:=property
+        Dim lr As Long:     lr = Cells(Rows.Count, "a").End(xlUp).Row
+        If lr >= 2 Then
+            Range("A1").CurrentRegion.Copy
+            Workbooks.Open filename:="Y:\05. Working File\01. Promotion request for SPGMN\Promotion Request for Sales PGM\Upload file\EmptyFile(DoNotDelete).xlsx"
+            Workbooks("EmptyFile(DoNotDelete).xlsx").Worksheets(1).Range("A1").PasteSpecial Paste:=xlPasteValues
+            Application.CutCopyMode = False
+           
+            lr = Cells(Rows.Count, "a").End(xlUp).Row
+            Range("Q2:Q" & lr) = "O"
+            Range("R2:R" & lr) = "SAL"
+            Range("S2:S" & lr).Formula = "=VLOOKUP(MID(K2,6,5),Mapping!$B:$C,2,0)"
+            Range("X2:X" & lr).Formula = "=IF(LEFT(O2,4)=""TM_R"",1,3)"
+                           
+            If Application.CountIf([A2:BG2000], "#N/A") >= 1 Then MsgBox ("Please check errors later")  ' Error Handling
+                       
+            Application.DisplayAlerts = False
+            Range("A1").CurrentRegion.Copy
+            Range("A1").PasteSpecial Paste:=xlPasteValues
+            Sheets("Mapping").Delete
+                                           
+            'ChDir sTempFolder
+            ActiveWorkbook.SaveAs filename:=sTempFolder & "\" & _
+                Format(DateTime.Now, "YYYY-MM-DD HH.MM") & "_" & "LUMPSUM_" & property & ".xlsx" _
+                , FileFormat:=xlOpenXMLWorkbook
+            ActiveWindow.Close
+        End If
+       
+    Next
+   
+    ActiveWindow.Close
+End Sub
+
+
+Sub upload_EXPORT_FIXED()
+    Dim sTempFolder As String:      sTempFolder = "E:\Z. Temp_Folder\Promotion Request for Sales PGMUpload file"
+    If file_existFolder(sTempFolder) = False Then MkDir (sTempFolder)
+    Range("A1:BG1").EntireColumn.Hidden = False
+   
+    If Application.CountIf([N2:N2000], "LUMPSUM") >= 1 Then ' Error Handling
+            MsgBox "Please input only LUMPSUM. There is Fixed PGM Type"
+            Exit Sub
+        ElseIf Application.CountIf([H2:H2000], "CZS") >= 1 Then
+            MsgBox "Please select only SAL. The list is included CZS AU"
+            Exit Sub
+        ElseIf Application.CountIf([AF2:AF2000], "BUYING_GROUP") >= 1 Then
+            MsgBox "Please select only BILL TO. The list is mixed with Buying Group."
+            Exit Sub
+        Else
+    End If
+       
+   
+    Dim property
+    For Each property In Array("NTTSO", "NTTSI", "TT")
+        Range("A1:BH1").AutoFilter Field:=5, Criteria1:=property
+        Dim lr As Long:     lr = Cells(Rows.Count, "a").End(xlUp).Row
+       
+        If lr >= 2 Then
+            Range("A1").CurrentRegion.Copy
+            Workbooks.Open filename:="Y:\05. Working File\01. Promotion request for SPGMN\Promotion Request for Sales PGM\Upload file\EmptyFile(DoNotDelete).xlsx"
+            Workbooks("EmptyFile(DoNotDelete).xlsx").Worksheets(1).Range("A1").PasteSpecial Paste:=xlPasteValues
+            Application.CutCopyMode = False
+           
+            lr = Cells(Rows.Count, "a").End(xlUp).Row
+            Range("v2:v" & lr) = "O"
+            Range("w2:w" & lr) = "SAL"
+            Range("x2:x" & lr).Formula = "=VLOOKUP(MID(K2,6,5),Mapping!$B:$C,2,0)"
+            Range("J2:J" & lr).Formula = _
+                    "=IF(AND(P2=""TM_R02"",R2=""PLN""),CONCATENATE(K2,""-"",AL2,""-"",(AW2/Mapping!$H$3),""EUR""),IF(AND(P2=""TM_R02"",R2=""EUR""),CONCATENATE(K2,""-"",AL2),K2))"
+            Range("J2:J" & lr).Copy
+            Range("k2").PasteSpecial xlPasteValues
+            Range("J2:J" & lr).ClearContents
+                                   
+            If Application.CountIf([A2:BH2000], "#N/A") >= 1 Then MsgBox ("Please check errors later")  ' Error Handling
+                       
+            Application.DisplayAlerts = False
+            Range("A1").CurrentRegion.Copy
+            Range("A1").PasteSpecial Paste:=xlPasteValues
+            Sheets("Mapping").Delete
+                                   
+            'ChDir sTempFolder
+            ActiveWorkbook.SaveAs filename:=sTempFolder & "\" & _
+                Format(DateTime.Now, "YYYY-MM-DD HH.MM") & "_" & "FIXED_" & property & ".xlsx" _
+                , FileFormat:=xlOpenXMLWorkbook
+               
+            ActiveWindow.Close
+        End If
+       
+    Next
+    ActiveWindow.Close
+End Sub
+
+
+'#######################  SA File List  ############################
+
+Sub SAfile_1ManagingFile()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(36):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+Sub SAfile_2ToDoList()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(37):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+Sub SAfile_3Calendar()
+    On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(38):          Exit Sub
+Escape:                         frmErrorFileLocation.Show
+End Sub
+
+
+
+
+
+
+'Addin Reset
+
+
+Option Explicit
+
+Sub cp_AddinFile()
+    Dim sTargetPath As String:  sTargetPath = Environ("Userprofile") & "\AppData\Roaming\Microsoft\AddIns\"
+    Dim sCopyFile As String
+    Dim sPasteFile As String, myAddin As AddIn
+    Dim i
+   
+    '1. Delete the SA files(Old and New version) to reset the file
+   
+    On Error Resume Next
+   
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print (myAddin.Name)
+        If myAddin.Name Like "SA_*" Then  ' deleting the new version
+            Workbooks(myAddin.Name).Close
+            myAddin.Installed = False
+            Kill (myAddin.FullName)
+        End If
+    Next
+     
+   
+   
+     '2. Copy and paste the update file only
+   
+    'copy and paste the add in file
+    sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_0Update*", True)
+    sPasteFile = sTargetPath & file_getFilenameFromPath(sCopyFile)
+    FileCopy sCopyFile, sPasteFile
+    AddIns.Add filename:=sPasteFile, CopyFile:=True
+           
+        'Add into addin manager
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print (myAddin.Name)
+        If myAddin.Name Like "SA_0Update*" Then
+            myAddin.Installed = True
+        End If
+    Next
+   
+   
+    On Error GoTo 0
+   
+    On Error GoTo errHandler:
+   
+    ThisWorkbook.Close savechanges:=False
+    Exit Sub
+errHandler:
+    MsgBox "Please check the below." & vbNewLine & vbNewLine & _
+                    "   1. Check whether your Cloud Disk is connected." & vbNewLine & _
+                    "       --> Please lunch the Colud Disk located on Window  wallpaper." & vbNewLine & vbNewLine & _
+                    "   2. Check you can find the folder 'Sales Admin COMMON' folder. " & vbNewLine & _
+                    "       --> Please request Sales Admin Team to give the authority." & vbNewLine & vbNewLine & _
+                    "    3. Other reason, please contact to Sales Admin team", , "Error Resaon!!" & vbNewLine
+End Sub
+
+
+'Addin Install
+
+
+Option Explicit
+
+Sub cp_AddinFile()
+    Dim sTargetPath As String:  sTargetPath = Environ("Userprofile") & "\AppData\Roaming\Microsoft\AddIns\"
+    Dim sCopyFile As String
+    Dim sPasteFile As String, myAddin As AddIn
+    Dim i
+   
+    '1. Delete the SA files(Old and New version) to reset the file
+   
+    On Error Resume Next
+   
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print (myAddin.Name)
+        If myAddin.Name Like "SA_*" Then  ' deleting the new version
+            Workbooks(myAddin.Name).Close
+            myAddin.Installed = False
+            Kill (myAddin.FullName)
+        End If
+    Next
+     
+   
+   
+     '2. Copy and paste the update file only
+   
+    'copy and paste the add in file
+    sCopyFile = file_mostRecentFile("W:\10. Raw Data\Excel Addins_updatingForBigChange", "SA_0Update*", True)
+    sPasteFile = sTargetPath & file_getFilenameFromPath(sCopyFile)
+    FileCopy sCopyFile, sPasteFile
+    AddIns.Add filename:=sPasteFile, CopyFile:=True
+           
+        'Add into addin manager
+    For i = 1 To Application.AddIns.Count
+        Set myAddin = Application.AddIns(i)
+        Debug.Print (myAddin.Name)
+        If myAddin.Name Like "SA_0Update*" Then
+            myAddin.Installed = True
+        End If
+    Next
+   
+   
+    On Error GoTo 0
+   
+    On Error GoTo errHandler:
+
+    Exit Sub
+errHandler:
+    MsgBox "Please check the below." & vbNewLine & vbNewLine & _
+                    "   1. Check whether your Cloud Disk is connected." & vbNewLine & _
+                    "       --> Please lunch the Colud Disk located on Window  wallpaper." & vbNewLine & vbNewLine & _
+                    "   2. Check you can find the folder 'Sales Admin COMMON' folder. " & vbNewLine & _
+                    "       --> Please request Sales Admin Team to give the authority." & vbNewLine & vbNewLine & _
+                    "    3. Other reason, please contact to Sales Admin team", , "Error Resaon!!" & vbNewLine
+End Sub
+
+
+
+
+
+
+UI
+
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" xmlns:nsPED="PED Namespace">
+    <ribbon startFromScratch="false">
+        <tabs>
+            <tab idQ="nsPED:rxtabPED" label="S.A. Tool" visible="1">
+                <group id="rxgrpStart" label="(Ver 1.2.1)" visible="1">
+                    <button id="rxbtnLaunch1" label="Update" screentip="Install the latest version." tag=".." imageMso="ResultsPaneStartFindAndReplace" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpBasic" label="Raw Data" visible="1">
+                    <button id="rxbtnRaw1" label="AAI" screentip="Open Accrual After Invoice Inquiry Data." tag="rawFile_1AAI" imageMso="FunctionsDateTimeInsertGallery" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnRaw2" label="Claim" screentip="Open Claim Inquiry Data." tag="rawFile_2Claim" imageMso="FunctionsFinancialInsertGallery" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnRaw3" label="PRLI" screentip="Open Promotion Registered List Inquiry Data." tag="rawFile_3PRLI" imageMso="FunctionsLogicalInsertGallery" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnRaw4" label="Sales" screentip="Open YTD Sales Data." tag="rawFile_4Sales" imageMso="FunctionsMathTrigInsertGallery" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnRaw5" label="PY Sales" screentip="Open Previous Year Sales Data." tag="rawFile_7PYSales" imageMso="FunctionsRecentlyUsedtInsertGallery" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpCommFile" label="Communication File" visible="1">
+                    <button id="rxbtnCF1" label="HE" screentip="Open HE Communication file." tag="commFile_1" imageMso="AppointmentColor1" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnCF2" label="HA" screentip="Open HA Communication file." tag="commFile_2" imageMso="AppointmentColor2" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnCF3" label="IT" screentip="Open IT Communication file." tag="commFile_3" imageMso="AppointmentColor3" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnCF4" label="ID" screentip="Open ID Communication file." tag="commFile_4" imageMso="AppointmentColor5" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnCF5" label="AE" screentip="Open AE Communication file." tag="commFile_5" imageMso="AppointmentColor8" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnCF6" label="TT" screentip="Open TT Communication file." tag="commFile_6" imageMso="AppointmentColor10" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpListExtract" label="List Extract in Folder" visible="1">
+                    <button id="rxbtnList1" label="Sys Confirm" screentip="Extract in the folder SPMS Email Confirmation." tag="list_1" imageMso="SaveSentItemsMenu" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnList2" label="Claim Email (to CFO)" screentip="Extract AP/CN Email Final Approval (only processed by e-invoice)." tag="list_2" imageMso="SaveSentItemsMenu" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnList3" label="Customer Notice" screentip="Extract in the folder Email Customer Notification (agreement included)." tag="list_3" imageMso="SaveSentItemsMenu" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnList5" label="CN PDF" screentip="Extract in the folder PDF Credit Note." tag="list_5" imageMso="SaveSentItemsMenu" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnList4" label="Z02 Template" screentip="Extract in the folder Sell-out Template for customer." tag="list_4" imageMso="SaveSentItemsMenu" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpByPromo" label="Search by Promo/PGM No." visible="1">
+                    <button id="rxbtnByPromo1" label="AAI" screentip="Search for the data in Accrual After Invoice Inquiry data." tag="byPromo_1" imageMso="ImportExcel" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo2" label="OriginalP_AAI" screentip="Search for the data in Accrual After Invoice Inquiry data using original Promo No." tag="byPromo_8" imageMso="FileSaveToDocumentManagementServer" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo3" label="Claim" screentip="Search for the data in Claim Inquiry data." tag="byPromo_2" imageMso="ImportExcel" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo4" label="PRLI" screentip="Search for the data in Promotion Registered Inquiry data." tag="byPromo_3" imageMso="ImportExcel" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo5" label="OriginalP_PRLI" screentip="Search for the data in Promotion Registered Inquiry data using original Promo No." tag="byPromo_9" imageMso="FileSaveToDocumentManagementServer" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo6" label="Sys Confirm" screentip="Open the SPMS Email Confirmation." tag="byPromo_4" imageMso="ManageReplies" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo7" label="Claim Email (to CFO)" screentip="Open the Email Final Approval (only processed by e-invoice)." tag="byPromo_5" imageMso="ManageReplies" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo8" label="Customer Notice" screentip="Open the Email Customer Notification (agreement included)." tag="byPromo_6" imageMso="ManageReplies" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnByPromo9" label="CN PDF" screentip="Open the PDF Credit Note." tag="byPromo_7" imageMso="BlogPublish" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpTools" label="Tools" visible="1">
+                    <button id="rxbtnTool1" label="Print Preview" screentip="Adjust the size of the selected area to the size of the page." tag="Tool_1" imageMso="ZoomFitToWindow" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnTool2" label="Save Img" screentip="Convert the selected area to the picture." tag="Tool_2" imageMso="PictureReflectionGalleryItem" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpFormat" label="Formats" visible="1">
+                    <button id="rxbtnFormat1" label="Basic" screentip="Basic Report Format." tag="NoFormat_1" imageMso="FontsReplaceFonts" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnFormat2" label="1K" screentip="Number Format change 1000 --> 1." tag="NoFormat_2" imageMso="FontsReplaceFonts" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnFormat3" label="1M" screentip="Number Format change 1000000 --> 1.0." tag="NoFormat_3" imageMso="FontsReplaceFonts" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnFormat4" label="%" screentip="Number Format change 1--> 100.0%" tag="NoFormat_4" imageMso="FontsReplaceFonts" size="normal" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+                <group id="rxgrpManual" label="Manual" visible="1">
+                    <button id="rxbtnManual1" label="SPMS" screentip="Promotion Registration Guide." tag="Manual_1" imageMso="FileSaveAsPowerPointPptx" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnManual2" label="General" screentip="Sales Deduction General Guide." tag="Manual_2" imageMso="FileSaveAsPowerPointPptx" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                    <button id="rxbtnManual3" label="SA Tool" screentip="Find out how to manage proper SA tools." tag="Manual_3" imageMso="FileSaveAsPowerPointPptx" size="large" onAction="Shared_Basic_Ribbon_Click" />
+                </group>
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>
