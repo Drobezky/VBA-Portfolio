@@ -65,3 +65,155 @@ Sub data_vbaSumIf(rngResult As Range, rngSum As Range, lOffsetColFromSum_SearchC
     Next rngCell
                                    
 End Sub
+
+
+
+
+Function file_rawFilePath(iFileNo As Integer) As String
+    Dim currYear As String: currYear = Format(Now, "yyyy")
+   
+    Select Case iFileNo
+        Case Is = 1:    file_rawFilePath = file_mostRecentFile("W:\10. Raw Data\01. VBA RAW DATA\", "*AAI*", True)
+        Case Is = 2:    file_rawFilePath = file_mostRecentFile("W:\10. Raw Data\01. VBA RAW DATA\", "*Claim Inquiry*", True)
+       
+        Case Is = 11:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\01. HE Communication File\", "*_HE_Communication file*", True)
+        Case Is = 12:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\02. HA Communication File\", "*HA_Communication file*", True)
+        Case Is = 13:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\03. IT Communication File\", "*IT_Communication file*", True)
+        Case Is = 14:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\04. ID Communication File\", "*ID_Communication file*", True)
+        Case Is = 15:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\05. AE Communication File\", "*AE_Communication file*", True)
+        Case Is = 16:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\06. TT Communication File\", currYear & "??_TT_communication file_v*", True)
+        Case Is = 17:    file_rawFilePath = file_mostRecentFile("Y:\05. Working File\05. RPA Claim Entry\", "*RPA_template_v*", True)
+        Case Is = 18:    file_rawFilePath = file_mostRecentFile("W:\02. Comm File\06. TT Communication File\", CStr(Val(currYear) - 1) & "??_TT_communication file_v*", True)
+       
+        
+       
+        Case Is = 91:    file_rawFilePath = file_mostRecentFile("W:\09. Manual\01. Sales Team Manual\", "Manual1*", True)
+        Case Is = 92:    file_rawFilePath = file_mostRecentFile("W:\09. Manual\01. Sales Team Manual\", "Manual2*", True)
+        Case Is = 93:    file_rawFilePath = file_mostRecentFile("W:\09. Manual\01. Sales Team Manual\", "Manual3*", True)
+       
+               
+      
+       
+    End Select
+End Function
+
+
+'Update: Add option to check the driver info, added E,F,S,C
+Function file_mostRecentFile(sSearchDirectory As String, sWildCard As String, Optional bChkAlldriver As Boolean = True) As String
+   
+    Dim sPath As String, sFileName As String                        'holds the name of the file we're currently looking at
+    Dim dteCurr As Date, dteMostRecent As Date                         'date of creation for the current file / holds the date of creation for the most recent file
+    Dim sMostRecentPath As String                 'path of file with most recent date
+    Dim vDriver As Variant, vDrivers As Variant: vDrivers = Array("Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F", "E", "D", "C", "B", "A")
+   
+    If Right(sSearchDirectory, 1) <> "\" Then sSearchDirectory = sSearchDirectory & "\"  ' add the "\" if missing
+    sWildCard = "*" & sWildCard & "*"
+   
+    If bChkAlldriver = True Then
+        sSearchDirectory = Right(sSearchDirectory, Len(sSearchDirectory) - 1)   ' delete the driver Alphabet for replacing with others
+
+        For Each vDriver In vDrivers
+           sFileName = Dir(vDriver & sSearchDirectory & sWildCard)    'look for file in directory which matches wildcard
+           Do While Len(sFileName) > 0                    'loop until Dir returns empty quotes (no files)
+               dteCurr = FileDateTime(vDriver & sSearchDirectory & sFileName)
+               If dteCurr > dteMostRecent Then            'check whether current file is more recent than previous files
+                   dteMostRecent = dteCurr                'if so, update most recent date and file
+                   sMostRecentPath = vDriver & sSearchDirectory & sFileName
+               End If
+               sFileName = Dir                            'move to next file in directory
+           Loop
+        Next
+    Else
+        sFileName = Dir(vDriver & sSearchDirectory & sWildCard)    'look for file in directory which matches wildcard
+        Do While Len(sFileName) > 0                    'loop until Dir returns empty quotes (no files)
+            dteCurr = FileDateTime(vDriver & sSearchDirectory & sFileName)
+            If dteCurr > dteMostRecent Then            'check whether current file is more recent than previous files
+                dteMostRecent = dteCurr                'if so, update most recent date and file
+                sMostRecentPath = vDriver & sSearchDirectory & sFileName
+            End If
+            sFileName = Dir                            'move to next file in directory
+        Loop
+    End If
+   
+   
+    If Len(sMostRecentPath) = 0 Then                       'check whether any files were returned
+        file_mostRecentFile = "\No files match "
+    Else
+        file_mostRecentFile = sMostRecentPath
+    End If
+End Function
+
+
+
+
+Function file_filePicker(Optional InitialFolder As String = "") As String
+    Dim Selected As Integer, i As Integer
+    Dim ReturnStr As String
+    Dim tempStr As Variant
+    Dim FDG As FileDialog
+        Set FDG = Application.FileDialog(msoFileDialogFilePicker)
+   
+        With FDG
+.Title = "Multi Files Selecte Dialog                 by Sales Admin Team"
+.Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb; *.tsv"
+.InitialView = msoFileDialogViewList
+.InitialFileName = InitialFolder
+.AllowMultiSelect = True
+Selected = .Show
+
+If Selected = -1 Then
+For i = 1 To FDG.SelectedItems.Count - 1
+tempStr = FDG.SelectedItems(i)
+ReturnStr = ReturnStr & tempStr & "|"
+Next i
+tempStr = FDG.SelectedItems(.SelectedItems.Count)
+file_filePicker = ReturnStr & tempStr
+
+ElseIf Selected = 0 Then
+MsgBox "No file is selected. The process will be end!!"
+End
+
+End If
+        End With
+ 
+    Set tempStr = Nothing: Set FDG = Nothing
+End Function
+
+
+
+Function file_findFolderDriver(sSearchDirectory As String, Optional bChkAlldriver As Boolean = True) As String
+   
+    Dim sPath As String, sPathName As String                        'holds the name of the file we're currently looking at
+    Dim vDriver As Variant, vDrivers As Variant: vDrivers = Array("Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F", "E", "D", "C", "B", "A")
+   
+    If Right(sSearchDirectory, 1) <> "\" Then sSearchDirectory = sSearchDirectory & "\"  ' add the "\" if missing
+   
+    If bChkAlldriver = True Then
+        sSearchDirectory = Right(sSearchDirectory, Len(sSearchDirectory) - 1)   ' delete the driver Alphabet for replacing with others
+
+        For Each vDriver In vDrivers
+           sPath = Dir(vDriver & sSearchDirectory, vbDirectory)    'look for path in directory
+           If sPath <> "" Then                   'loop until Dir returns empty quotes (no pathes)
+            sPath = vDriver & sSearchDirectory
+               Exit For                        'move to next driver
+           End If
+        Next
+    Else
+        sPath = Dir(vDriver & sSearchDirectory, vbDirectory) 'look for path in directory
+        If sPath <> "" Then                   'loop until Dir returns empty quotes (no pathes)
+        sPath = vDriver & sSearchDirectory
+           End If
+    End If
+   
+   
+    If Len(sPath) = 0 Then                       'check whether any path was returned
+        file_findFolderDriver = "\No Path match "
+    Else
+        file_findFolderDriver = sPath
+    End If
+End Function
+   
+
+
+
+
