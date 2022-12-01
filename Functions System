@@ -1,0 +1,16 @@
+'##### extracting the user's Family name(surname) or full name #####
+Function env_getUserName(Optional FamilyN As Boolean = False) As String
+    Dim un1 As String, un2 As String
+   
+        If FamilyN = True Then            'extracting Fulle Name
+            un1 = Environ("username")
+            env_getUserName = un1
+        Else                                         'extracting the Family Name only
+            un1 = Environ("username")
+            un2 = Right(un1, Len(un1) - InStrRev(un1, "."))
+            env_getUserName = un2
+        End If
+End Function
+
+
+
