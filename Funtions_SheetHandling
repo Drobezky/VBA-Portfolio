@@ -1,0 +1,12 @@
+'update: ' The data_sWksTabName() function converts a CodeName into its corresponding sheet tab name.
+Private Function data_wksTabName(ByRef wkbProject As Workbook, ByRef sWksCodeName As String) As String
+   
+    Dim wksSheet As Worksheet
+   
+    For Each wksSheet In wkbProject.Worksheets
+        If wksSheet.CodeName = sWksCodeName Then 'sWksCodeName is paremeter in argument
+            data_wksTabName = wksSheet.Name
+            Exit For
+        End If
+    Next
+End Function
