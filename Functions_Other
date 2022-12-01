@@ -1,0 +1,169 @@
+' Extract_array to worksheet /  added paste vertical option.
+Sub data_ArrayToRng(rngPst As Range, arr As Variant, Optional bVertical As Boolean = True)
+    Dim tempArr As Variant, i As Long
+    ReDim tempArr(LBound(arr, 1) To UBound(arr, 1), 1 To 1)
+
+    For i = LBound(arr, 1) To UBound(arr, 1)
+        tempArr(i, 1) = arr(i)
+    Next
+
+If bVertical = True Then
+rngPst.Cells(1, 1).Resize(UBound(arr, 1) - LBound(arr, 1) + 1, 1) = tempArr
+Else
+rngPst.Cells(1, 1).Resize(1, UBound(arr, 1) - LBound(arr, 1) + 1) = tempArr
+End If
+   
+End Sub
+
+
+' Bob multi selected range value as array/ added option text add on front, and ened of range.values
+Function data_rngToArray(rngRange As Range, Optional sAddFront As String = "", Optional sAddBack As String = "") As Variant
+    Dim rng As Range, avArray() As Variant, iCnt As Integer
+    For Each rng In rngRange
+        ReDim Preserve avArray(iCnt)
+        avArray(iCnt) = sAddFront & rng.Value & sAddBack
+        iCnt = iCnt + 1
+    Next
+    data_rngToArray = avArray
+End Function
+
+
+' Autofiter to reduce the lines of code
+Sub data_autoFilter(rngHeader As Range, iField1 As Integer, vCriteria1 As Variant, Optional iField2 As Integer = 0, Optional vCriteria2 As Variant = "", Optional iField3 As Integer = 0, Optional vCriteria3 As Variant = "", _
+                                    Optional iField4 As Integer = 0, Optional vCriteria4 As Variant = "", Optional iField5 As Integer = 0, Optional vCriteria5 As Variant = "")
+    On Error Resume Next:
+   
+    Dim wks As Worksheet:       Set wks = rngHeader.Parent
+    If wks.AutoFilterMode Then
+        wks.ShowAllData
+    Else
+        wks.Range(rngHeader.Address).AutoFilter
+    End If
+   
+    rngHeader.AutoFilter Field:=iField1, Criteria1:=vCriteria1, Operator:=xlFilterValues
+    rngHeader.AutoFilter Field:=iField2, Criteria1:=vCriteria2, Operator:=xlFilterValues
+    rngHeader.AutoFilter Field:=iField3, Criteria1:=vCriteria3, Operator:=xlFilterValues
+    rngHeader.AutoFilter Field:=iField4, Criteria1:=vCriteria4, Operator:=xlFilterValues
+    rngHeader.AutoFilter Field:=iField5, Criteria1:=vCriteria5, Operator:=xlFilterValues
+   
+    On Error GoTo 0
+Set wks = Nothing
+End Sub
+
+
+'updated: to make the key values in selected range: values taking from same sheet ranges : saving
+Sub data_rngConcatenate(rngResult As Range, lOffsetCols_Agu1 As Long, lOffsetCols_Agu2 As Long, Optional lOffsetCols_Agu3 As Long = 0, Optional sTxtAddBetween As String = "")
+    Dim rngCell As Range
+       
+    If Len(sTxtAddBetween) = 0 Then ' ==== Adding the Text between the ranges
+        If lOffsetCols_Agu3 = 0 Then  ' ==== concatenate 2 or 3 ranges
+            For Each rngCell In rngResult.Cells
+                rngCell.Value = rngCell.Offset(, lOffsetCols_Agu1).Value & rngCell.Offset(, lOffsetCols_Agu2).Value
+            Next
+        Else
+            For Each rngCell In rngResult.Cells
+                rngCell.Value = rngCell.Offset(, lOffsetCols_Agu1).Value & rngCell.Offset(, lOffsetCols_Agu2).Value & rngCell.Offset(, lOffsetCols_Agu3).Value
+            Next
+        End If
+   
+    Else
+        If lOffsetCols_Agu3 = 0 Then  ' ==== concatenate 2 or 3 ranges with text adding
+            For Each rngCell In rngResult.Cells
+                rngCell.Value = rngCell.Offset(, lOffsetCols_Agu1).Value & sTxtAddBetween & rngCell.Offset(, lOffsetCols_Agu2).Value
+            Next
+        Else
+            For Each rngCell In rngResult.Cells
+                rngCell.Value = rngCell.Offset(, lOffsetCols_Agu1).Value & sTxtAddBetween & rngCell.Offset(, lOffsetCols_Agu2).Value & sTxtAddBetween & rngCell.Offset(, lOffsetCols_Agu3).Value
+            Next
+        End If
+    End If
+   
+End Sub
+
+
+Sub newEpEmail(ByVal strMailto As String, ByVal strSubject As String, ByVal strBody As String, Optional strAttach As String = "Yes")
+   
+    Dim obj1 As Object, obj2 As Object
+    Dim IE As InternetExplorer
+    Dim strURL As String, idNo As String
+    Dim ele1 As IHTMLElement
+    Dim iframeDoc As IHTMLDocument
+   
+    '///// Block of extrating the Employee Number from opend InternetExplorer Email
+        Set obj2 = CreateObject("Shell.Application")
+        For Each obj1 In obj2.Windows
+  If TypeName(obj1.document) = "HTMLDocument" Then
+strURL = obj1.document.Url
+If strURL Like "http://lgeeuazms*.lge.com/mail*/" & "*" Then
+strURL = Left(strURL, 46)
+Exit For
+End If
+  End If
+        Next
+                       
+        strURL = Left(strURL, InStr(strURL, "/PL1") + 8)
+        idNo = Right(strURL, 8):           strURL = Left(strURL, Len(strURL) - Len(idNo))
+        'Set obj1 = Nothing: Set obj2 = Nothing
+        obj1.Visible = True
+        AppActivate obj1.document.Title
+       
+    '///// error Massage if there is no EP Email opned
+        If strURL Like "http://lgeeuazms*.lge.com/mail*" & "*" Then
+        Else
+                MsgBox "You didin't open EP email on Internet Explore. Please open " & vbNewLine & _
+                            "Please try again after open EP email on Internet Explore."
+                Exit Sub
+        End If
+     
+        Set IE = CreateObject("InternetExplorer.Application")
+        Set IE = obj1
+        Set iframeDoc = Nothing
+        Do While (IE.readyState <> 4 Or IE.Busy = True)  'Waiting until IE is ready
+            DoEvents
+        Loop
+       
+        For Each iframeDoc In IE.document.getElementsByTagName("frameset")
+            If iframeDoc.className = "Main" Then
+                Set iframeDoc = IE.document.contentDocument
+            End If
+        Next
+       
+       
+'        Set iframeDoc = IE.document.getElementsByTagName("frame").innerText.contentDocument
+       
+       Set ele1 = iframeDoc.getElementsByClassName("tx-content-container en")(0)
+        iframeDoc.getElementsByTagName("p")(0).innerHTML = strBody
+       
+       
+        For Each ele1 In IE.document.getElementsByClassName("cls_button_group_item_title_text cls_inline-block")
+            If ele1.innerText = "Compose" Then
+                ele1.Click
+            End If
+        Next ele1
+   
+
+    Set ele1 = Nothing:  Set IE = Nothing: Set iframeDoc = Nothing
+End Sub
+
+
+'Updated: creating the PNG files to attach in Email Claim as Evidence
+Sub pasteWorkssheetAsPng(rngCopy As Range, rngPaste As Range, Optional clearAll As Boolean = True)
+       
+    If clearAll = True Then
+        rngPaste.Worksheet.Pictures.Delete
+    End If
+   
+    Set rngCopy = Worksheets("Input").Range("B5:S7")
+    rngCopy.Copy
+   
+    rngPaste.Worksheet.Activate
+    rngPaste.Select ' for the location to paste
+    rngPaste.Worksheet.Pictures.Paste
+
+    With rngPaste.Worksheet.Pictures.ShapeRange
+        .Shadow.Visible = msoFalse
+        .Line.Visible = msoTrue
+        .Line.Weight = 1    'bother line weight
+    End With
+
+End Sub
