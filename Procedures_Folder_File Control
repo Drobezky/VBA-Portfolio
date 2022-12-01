@@ -1,0 +1,73 @@
+'update : added quatation mark
+Sub file_runPython(sPathPythonFile As String)
+    '   "C:\Program Files\Python37\python.exe"
+    Dim objShell As Object:             Set objShell = VBA.CreateObject("Wscript.Shell")
+    Dim PythonEXE As String:        PythonEXE = """C:\Program Files\Python37\Python.exe """
+    sPathPythonFile = Chr(34) & sPathPythonFile & Chr(34)
+    objShell.Run (PythonEXE & sPathPythonFile)
+   
+   
+End Sub
+
+Sub file_openFolder(sFolderPath As String)
+    If Right(sFolderPath, 1) <> "\" Then sFolderPath = sFolderPath & "\"  ' add the "\" if missing
+
+    Shell "explorer """ & sFolderPath & "", vbNormalFocus
+End Sub
+
+'01-02-2022 corrected error. Subprocedure to Delete All Files in Folder and Subfolders / added error handler
+Sub file_DelAllFoldersFiles(sFolderPath0 As String, Optional bOpt_DelSubFolderFiles As Boolean = False)
+   
+    'Dim sFolderPath As String
+    Dim sFileName As String
+    Dim ObjFso As Object, objSubFolder As Object
+    Dim objFile As Object, objFolder As Object
+   
+    On Error GoTo Err1:
+    If Right(sFolderPath0, 1) <> "\" Then sFolderPath0 = sFolderPath0 & "\"     'Check for slash
+       
+    'Create FSO Object
+    Set ObjFso = CreateObject("Scripting.FileSystemObject")
+    Set objFolder = ObjFso.GetFolder(sFolderPath0)
+   
+    If ObjFso.FolderExists(sFolderPath0) Then       'Check Specified Folder exists or not
+        For Each objFile In objFolder.Files         'Loop through each file in a specified folder
+            If objFile.Name <> ThisWorkbook.Name Then objFile.Delete            'excluding current workbook Delete file
+        Next
+     End If
+     
+    If bOpt_DelSubFolderFiles = True Then
+        For Each objSubFolder In objFolder.SubFolders   'Check Subfolders in specified folder
+            objSubFolder.Delete
+        Next
+    End If
+    Exit Sub
+Err1:
+    MsgBox objSubFolder & "  folder not deleted.", , "Sales Admin"
+End Sub
+
+
+'Update 23.09.2021 Joachim
+Sub file_findReplace(sOldFolder As String, sNewFolder As String, sOldText As String, sNewText As String, Optional sOpt_ExtensionFilter As String = "")
+'Create a list of files within Specified Folder
+  Dim vFileList As Variant: vFileList = file_aListPaths(sOldFolder, sOpt_ExtensionFilter, False)
+
+  Dim i As Long, sNewFileName As String
+  For i = LBound(vFileList) To UBound(vFileList)    'Loop through list of files
+    If vFileList(i) Like "*" & sOldText & "*" Then
+        sNewFileName = Replace(vFileList(i), sOldText, sNewText)      'Perform Find/Replace on file name
+        Name vFileList(i) As sNewFolder & file_getFilenameFromPath(sNewFileName)      'Rename file
+    End If
+    i = i + 1
+  Next i
+
+End Sub
+
+
+
+'28-04-2022 updated. run the file based on fullname
+Sub file_openFile(sFullName As String)
+    On Error GoTo Escape:
+    Shell "rundll32.exe url.dll,FileProtocolHandler " & sFullName, vbNormalFocus:            Exit Sub
+Escape:             MsgBox "Please check the fullname. It cannot be found.", vbOKOnly, "Check!"
+End Sub
