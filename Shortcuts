@@ -1,0 +1,219 @@
+Sub NoFormat_1()
+' Number Format change 1 --> 1, -1 --> ¥Ä1
+' Shortcut: Ctrl+Shift+Q
+
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0;[Red]" & ChrW(916) & "#,##0;""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_1K()
+' Number Format change 1000 --> 1
+' Shortcut: Ctrl+Shift+W
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0,;[Red]" & ChrW(916) & "#,##0,;""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+Sub NoFormat_1M()
+' Number Format change 1000000 --> 1.0
+' Shortcut: Ctrl+Shift+E
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0.0,,;[Red]" & ChrW(916) & "#,##0.0,,;""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+
+End Sub
+
+Sub NoFormat_Percent()
+' Number Format change 1--> 100.0%
+' Shortcut: Ctrl+Shift+R
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0.0%;[Red]" & ChrW(916) & "#,##0.0%;""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_2_vsSales()
+' Shortcut: Ctrl+Shift+A
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0" & ChrW(8593) & ";[red]#,##0" & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_2K_vsSales()
+' Shortcut: Ctrl+Shift+S
+
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0," & ChrW(8593) & ";[red]#,##0," & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_2M_vsSales()
+' Shortcut: Ctrl+Shift+D
+
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0,," & ChrW(8593) & ";[red]#,##0,," & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+
+Sub NoFormat_percent_vsSales()
+' Shortcut: Ctrl+Shift+F
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "#,##0.0%p" & ChrW(8593) & ";[red]#,##0.0%p" & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+
+Sub NoFormat_3_vsCost()
+' Shortcut: Ctrl+Shift+Z
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "[Red]#,##0" & ChrW(8593) & ";#,##0" & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+
+Sub NoFormat_3K_vsCost()
+
+' Shortcut: Ctrl+Shift+X
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "[Red]#,##0," & ChrW(8593) & ";#,##0," & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_3M_vsCost()
+' Shortcut: Ctrl+Shift+C
+
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "[Red]#,##0,," & ChrW(8593) & ";#,##0,," & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub NoFormat_Percent_vsCost()
+' Shortcut: Ctrl+Shift+V
+'
+    With Selection
+        .VerticalAlignment = xlCenter
+        .Font.Name = "Arial Narrow"
+        .NumberFormat = "[Red]#,##0.0%p" & ChrW(8593) & ";#,##0.0%p" & ChrW(8595) & "; ""-"""
+        .FormatConditions.Delete
+        .FormatConditions.Add Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0"
+        .FormatConditions(1).Font.Color = -16776961
+    End With
+
+End Sub
+
+Sub FontArrialNarrow()
+' Shortcut: Ctrl+Shift+K
+    Cells.Font.Name = "Arial Narrow"
+    ActiveWindow.DisplayGridlines = False
+
+End Sub
+Sub ColumnUnhide()
+' Shortcut: Ctrl+Shift+O
+
+    Selection.EntireColumn.Hidden = False
+
+End Sub
+
+
+Sub AddShape()
+' Shortcut: Ctrl+Shift+G
+'##01 current pointed mouse adding retegular and change the color / creating mouse points are different by people window setting. Need to be improved.
+
+On Error GoTo newShape
+        With Selection.ShapeRange.Line.ForeColor
+                If .RGB = RGB(255, 0, 0) Then
+                    .RGB = RGB(146, 208, 80)
+                ElseIf .RGB = RGB(146, 208, 80) Then
+                    .RGB = RGB(255, 0, 0)
+                Else
+                    .RGB = RGB(255, 0, 0)
+                End If
+        End With
+        Exit Sub
+           
+newShape:
+            ActiveSheet.Shapes.AddShape(msoShapeRectangle, 0, 0, 50, 15).Select
+   
+            With Selection.ShapeRange
+                .Fill.Visible = msoFalse
+                .Line.Visible = msoTrue
+                .Line.ForeColor.RGB = RGB(255, 0, 0)
+                .Line.Transparency = 0
+                .Line.Weight = 2
+            End With
+
+End Sub
+
