@@ -1,0 +1,162 @@
+'Copy and paste with options(value paste, visibleCell copy)
+Sub data_cp(rngCpyRng As Range, rngPstCell As Range, Optional bOpt_pstValue As Boolean = False, Optional bOpt_pastVisible As Boolean = False)
+   
+   
+    If bOpt_pstValue = True Then
+       
+        'paste as value only
+        If bOpt_pastVisible = True Then
+            ThisWorkbook.Worksheets.Add.Name = "Temp9999"
+           Dim wksTemp As Worksheet: Set wksTemp = ThisWorkbook.Worksheets("Temp9999")
+           rngCpyRng.SpecialCells(xlCellTypeVisible).Copy wksTemp.Range("a1")
+           Dim rngTemp As Range: Set rngTemp = wksTemp.Range("a1").CurrentRegion
+            rngPstCell.Resize(rngTemp.Rows.Count, rngTemp.columns.Count).Value = rngTemp.Value
+            Application.DisplayAlerts = False:      wksTemp.Delete: Application.DisplayAlerts = True
+        Else
+            rngPstCell.Resize(rngCpyRng.Rows.Count, rngCpyRng.columns.Count).Value = rngCpyRng.Value
+
+        End If
+   
+    Else
+        'paste as format/value only
+        If bOpt_pastVisible = True Then
+            rngCpyRng.SpecialCells(xlCellTypeVisible).Copy rngPstCell           'copy visiable cell only
+        Else
+            rngCpyRng.Copy rngPstCell       'copy all range
+        End If
+   
+    End If
+End Sub
+
+
+
+'Copy and Paste the advance filtered and reduce the worksheet argument
+Sub data_cpFilteredRng(rngDatabase As Range, rngCriteria As Range, rngPstCell As Range, Optional bPstValueOpt As Boolean = False, Optional vSelectCols As Variant = "", Optional bCpyVisibleOpt As Boolean = False)
+    Dim lr1 As Long, rng As Range, var As Variant, Vars As Variant
+
+    With Workbooks(rngDatabase.Parent.Parent.Name).Worksheets(rngDatabase.Parent.Name)
+        If .FilterMode Then .ShowAllData
+        rngDatabase.Advancedfilter Action:=xlFilterInPlace, CriteriaRange:=rngCriteria ' advanced filte
+       
+        If Len(vSelectCols) < 1 Then  ' filtered ranage to rng variable
+            Set rng = rngDatabase.SpecialCells(xlCellTypeVisible)
+        Else
+            Vars = Split(vSelectCols, ",")
+            lr1 = .Cells(.Rows.Count, rngDatabase.Column).End(3).Row
+            For Each var In Vars
+                 var = .Range(var & 1).Column
+                 If rng Is Nothing Then Set rng = .Range(.Cells(rngDatabase.Row, var), .Cells(lr1, var))
+                 Set rng = Union(rng, .Range(.Cells(rngDatabase.Row, var), .Cells(lr1, var)))
+             Next
+        End If
+    End With
+   
+    If bCpyVisibleOpt = True Then Set rng = rng.SpecialCells(xlCellTypeVisible)
+   
+    If bPstValueOpt = False Then   'paste option (All or only values)
+        rng.Copy rngPstCell
+    Else
+        Set rngPstCell.Resize(rng.Rows.Count, rng.columns.Count) = rng
+       
+       
+'        rng.Copy
+'        rngPstCell.PasteSpecial xlPasteValues
+    End If
+   
+End Sub
+
+'updated, Copy and Paste the advance filtered and reduce the worksheet argument
+Sub data_cpFilteredRng(rngDatabase As Range, rngCriteria As Range, rngPstCell As Range, Optional bPstValueOpt As Boolean = False, Optional vSelectCols As Variant = "", Optional bCpyVisibleOpt As Boolean = False)
+    Dim lr1 As Long, rng As Range, var As Variant, Vars As Variant
+
+    With Workbooks(rngDatabase.Parent.Parent.Name).Worksheets(rngDatabase.Parent.Name)
+        If .FilterMode Then .ShowAllData
+        rngDatabase.Advancedfilter Action:=xlFilterInPlace, CriteriaRange:=rngCriteria ' advanced filte
+       
+        If Len(vSelectCols) < 1 Then  ' filtered ranage to rng variable
+            Set rng = rngDatabase.SpecialCells(xlCellTypeVisible)
+        Else
+            Vars = Split(vSelectCols, ",")
+            lr1 = .Cells(.Rows.Count, rngDatabase.Column).End(3).Row
+            For Each var In Vars
+                 var = .Range(var & 1).Column
+                 If rng Is Nothing Then Set rng = .Range(.Cells(rngDatabase.Row, var), .Cells(lr1, var))
+                 Set rng = Union(rng, .Range(.Cells(rngDatabase.Row, var), .Cells(lr1, var)))
+             Next
+        End If
+    End With
+   
+    If bCpyVisibleOpt = True Then Set rng = rng.SpecialCells(xlCellTypeVisible)
+   
+    If bPstValueOpt = False Then   'paste option (All or only values)
+        rng.Copy rngPstCell
+    Else
+        Set rngPstCell.Resize(rng.Rows.Count, rng.columns.Count) = rng
+       
+       
+'        rng.Copy
+'        rngPstCell.PasteSpecial xlPasteValues
+    End If
+   
+End Sub
+
+'Updated : Adding visiable cell options
+'Updated : change the name, delete the last row arguments, updated the paste as value(range.value = range.value)
+'copies selected column areas from one location and pastes into another / by Joachim 03.03.2021 : create the sub
+Sub data_cpByCols(wksCpy As Worksheet, vCpyCols As Variant, lCpytRowFrom_exclHeader As Long, wksPst As Worksheet, vPstCols As Variant, Optional bPstValueOpt As Boolean = False, Optional bCpyVisibleCell As Boolean = True)
+       
+    Dim rng As Range, i As Long, j As Long
+    Dim lCpyLastRow As Long, lPstLastRow As Long
+    Dim vRanges As Variant, lRowsInRange As Long, lPstLastRowDefault As Long
+   
+    With wksCpy
+        vCpyCols = Split(vCpyCols, ",")
+        vPstCols = Split(vPstCols, ",")
+               
+        If bPstValueOpt = False Then  ' paste all (faster : without clip board using)
+            For i = LBound(vCpyCols) To UBound(vCpyCols)
+                If i = 0 Then lCpyLastRow = .Cells(.Rows.Count, vCpyCols(0)).End(xlUp).Row  ' fixed the last row from copy sheet's first column
+                If i = 0 Then lPstLastRow = wksPst.Cells(wksPst.Rows.Count, vPstCols(0)).End(xlUp).Row   ' fixed the last row from paste sheet's first column
+                If bCpyVisibleCell = True Then  ' optional copy and paste the visible cells
+                    Set rng = .Range(.Cells(lCpytRowFrom_exclHeader, vCpyCols(i)), .Cells(lCpyLastRow, vCpyCols(i))).SpecialCells(xlCellTypeVisible)
+                Else
+                    Set rng = .Range(.Cells(lCpytRowFrom_exclHeader, vCpyCols(i)), .Cells(lCpyLastRow, vCpyCols(i)))
+                End If
+                rng.Copy wksPst.Cells(lPstLastRow + 1, vPstCols(i))
+            Next
+       
+        Else  ' paste the value (slower: with clip board using)
+            For i = LBound(vCpyCols) To UBound(vCpyCols)
+                If i = 0 Then lCpyLastRow = .Cells(.Rows.Count, vCpyCols(0)).End(xlUp).Row ' fixed the last row from copy sheet's first column
+                If i = 0 Then lPstLastRow = wksPst.Cells(wksPst.Rows.Count, vPstCols(0)).End(xlUp).Row ' fixed the last row from paste sheet's first column
+                If bCpyVisibleCell = True Then  ' optional copy and paste the visible cells
+                    Set rng = .Range(.Cells(lCpytRowFrom_exclHeader, vCpyCols(i)), .Cells(lCpyLastRow, vCpyCols(i))).SpecialCells(xlCellTypeVisible)
+                    If Len(rng.Address) > 256 Then  ' if the selected range address text is longer than 256, split function canot read the full text of whole range address. / can be improved later.
+                        MsgBox " your visiable selected range's address text length is longer than 256. You need to sort the raw data and try to reduce the seperated range. then, it should work and faster."
+                        Exit Sub
+                    End If
+                       
+                    vRanges = Split(rng.Address, ",")
+                    For j = LBound(vRanges) To UBound(vRanges)
+                        If j = 0 Then lPstLastRowDefault = lPstLastRow
+                        lRowsInRange = .Range(CStr(vRanges(j))).Rows.Count
+                        'If lPstLastRowDefault = 1 Then lPstLastRowDefault = 0
+                        wksPst.Cells(lPstLastRowDefault + 1, vPstCols(i)).Resize(lRowsInRange).Value = wksCpy.Range(vRanges(j)).Value
+                        lPstLastRowDefault = lPstLastRowDefault + lRowsInRange
+                    Next
+                Else          ' optional copy and paste the not visible cells
+                    Set rng = .Range(.Cells(lCpytRowFrom_exclHeader, vCpyCols(i)), .Cells(lCpyLastRow, vCpyCols(i)))
+                    'If lPstLastRow = 1 Then lPstLastRow = lPstLastRow - 1
+                    wksPst.Cells(lPstLastRow, vPstCols(i)).Resize(lCpyLastRow - lCpytRowFrom_exclHeader + 1).Value = rng.Value
+                End If
+            Next
+        End If
+    End With
+
+End Sub
+
+
+
+
+
+
