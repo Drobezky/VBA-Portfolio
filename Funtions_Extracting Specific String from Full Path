@@ -1,0 +1,46 @@
+
+Function file_getFilenameFromPath(ByVal strPath As String) As String
+    If Right(strPath, 1) <> "\" And Len(strPath) > 0 Then
+        file_getFilenameFromPath = file_getFilenameFromPath(Left(strPath, Len(strPath) - 1)) + Right(strPath, 1)
+    End If
+End Function
+
+Function file_getFolderFromPath(ByVal sFolder0 As String) As String
+  file_getFolderFromPath = Left(sFolder0, InStrRev(sFolder0, "\") - 1)
+End Function
+
+''Update: added correction of folder path end letter
+Function file_getParentFolder(ByVal sFolder0 As String) As String
+  If Right(sFolder0, 1) <> "\" Then sFolder0 = sFolder0 & "\"
+  Dim sFolder1 As String
+  On Error GoTo ErrFolderPath
+  sFolder1 = Left(sFolder0, InStrRev(sFolder0, "\") - 1)
+  file_getParentFolder = Left(sFolder1, InStrRev(sFolder1, "\") - 1)
+  Exit Function
+ErrFolderPath:  ' for there is no level to upper(parent folder)
+    file_getParentFolder = sFolder1
+End Function
+
+
+'' 28-04-2022 updated 'Returns the most recent file in searchDirectory, which matches wildCard criteria
+Function file_getMostRecentFileTime(ByVal searchDirectory As String, ByVal wildCard As String) As Date
+       Dim strFileName As String                        'holds the name of the file we're currently looking at
+       Dim mostRecent As Date                       'holds the date of creation for the most recent file
+       Dim currDate As Date                         'date of creation for the current file
+       
+        If Right(searchDirectory, 1) <> "\" Then searchDirectory = searchDirectory & "\"
+       strFileName = Dir(searchDirectory & wildCard)    'look for file in directory which matches wildcard
+       Do While Len(strFileName) > 0                    'loop until Dir returns empty quotes (no files)
+           currDate = FileDateTime(searchDirectory & strFileName)
+           If currDate > mostRecent Then            'check whether current file is more recent than previous files
+               mostRecent = currDate                'if so, update most recent date and file
+           End If
+           strFileName = Dir                            'move to next file in directory
+       Loop
+
+       If mostRecent = 0 Then                       'check whether any files were returned
+           file_getMostRecentFileTime = 0
+       Else
+           file_getMostRecentFileTime = mostRecent
+       End If
+End Function
