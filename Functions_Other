@@ -16,7 +16,7 @@ End If
 End Sub
 
 
-' Bob multi selected range value as array/ added option text add on front, and ened of range.values
+' multi selected range value as array/ added option text add on front, and ened of range.values
 Function data_rngToArray(rngRange As Range, Optional sAddFront As String = "", Optional sAddBack As String = "") As Variant
     Dim rng As Range, avArray() As Variant, iCnt As Integer
     For Each rng In rngRange
