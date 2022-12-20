@@ -3,12 +3,12 @@ Function file_existFile(ByVal sPath As String) As Boolean
     file_existFile = (Dir(sPath) <> "")
 End Function
 
-'Update: Bob checking the folder exist
+'Update:checking the folder exist
 Function file_existFolder(ByVal sFolderPath As String) As Boolean
     file_existFolder = (Dir(sFolderPath, vbDirectory) <> "")
 End Function
 
-'updated: Bob check if the excel workbook is open  // Need to be updated to check whether other use are using
+'updated: check if the excel workbook is open  // Need to be updated to check whether other use are using
 Function file_checkWkbOpen(ByVal sFileName As String) As Boolean
     On Error Resume Next
     Dim wkb As Workbook:    Set wkb = Workbooks(sFileName)
