@@ -114,9 +114,9 @@ errHandler:
     MsgBox "Please check the below." & vbNewLine & vbNewLine & _
                     "   1. Check whether your Cloud Disk is connected." & vbNewLine & _
                     "       --> Please lunch the Colud Disk located on Window  wallpaper." & vbNewLine & vbNewLine & _
-                    "   2. Check you can find the folder 'Sales Admin COMMON' folder. " & vbNewLine & _
-                    "       --> Please request Sales Admin Team to give the authority." & vbNewLine & vbNewLine & _
-                    "    3. Other reason, please contact to Sales Admin team", , "Error Resaon!!"
+                    "   2. Check you can find the folder **** folder. " & vbNewLine & _
+                    "       --> Please request **** to give the authority." & vbNewLine & vbNewLine & _
+                    "    3. Other reason, please contact ******", , "Error Resaon!!"
 End Sub
 
 Sub about_info()
@@ -146,8 +146,8 @@ Sub about_MyNote()
     Dim sNote_FullName As String
     Dim sNote_Path As String:
    
-    If sUserName = "kwangbeom.park" Or sUserName = "joachim.drobek" Or sUserName = "monika.kim" Or _
-       sUserName = "michal.szatkowski" Or sUserName = "katsiaryna.davydchyk" Then 'for Sales Admin team
+    If sUserName = "***" Or sUserName = "***" Or sUserName = "***" Or _
+       sUserName = "***" Or sUserName = "***" Then 'for Sales Admin team
        sNote_FullName = file_mostRecentFile("W:\02. Comm File\07. SA Communication File\", "*" & sUserName & "*", True)
        Workbooks.Open filename:=sNote_FullName
        
@@ -248,7 +248,7 @@ End Sub
 
 Option Explicit
 
-'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+'Last modified 02-11-2021//14-10-2021 Error Handling added
 '#######################  RawFile ############################
 
 Sub rawFile_1AAI()
@@ -466,7 +466,7 @@ Sub List_2Copy_ClaimEmail_ToFolder()
 Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(List_2Copy_ClaimEmail_ToFolder)", , "Exceptional Error!!"
 End Sub
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022 (Using a new variable on current year)
 Sub List_3Copy_customerNotice_ToFolder()
     Dim promoNo As Range, rngPromoNos As Range:       Set rngPromoNos = Selection
     Dim sPath As String, sFileName As String
@@ -514,7 +514,7 @@ Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. 
 End Sub
 
 
-'Updated 15-09-2021 by Joachim
+'Updated 15-09-2021
 Sub List_4Z02_Template()
     Application.DisplayAlerts = False:          Application.ScreenUpdating = False:         Application.Calculation = xlCalculationManual
    
@@ -660,7 +660,7 @@ errHandling:
     Call data_defaultApp
 End Sub
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022  (Using a new variable on current year)
 Sub List_5Copy_RPA_CN_ToFolder()
     Dim promoNo As Range, rngPromoNos As Range:      Set rngPromoNos = Selection
     Dim sPath As String, sFileName As String
@@ -859,7 +859,7 @@ Sub ByPromoNo_8originalPRLI()
 Escape:             frmErrorFileLocation.Show:             Application.DisplayAlerts = True
 End Sub
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022 (Using a new variable on current year)
 Sub ByPromoNo_4Dir()
     Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
     Dim i As Integer, sPathEmail As String
@@ -895,7 +895,7 @@ Sub ByPromoNo_4Dir()
 Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(ByPromoNo_4Dir)", , "Exceptional Error!!"
 End Sub
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022 (Using a new variable on current year)
 Sub byPromoNo_5ClaimEmail()
     Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
     Dim i As Integer, sPathEmail As String
@@ -928,7 +928,7 @@ Sub byPromoNo_5ClaimEmail()
 Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. Error(byPromoNo_5ClaimEmail)", , "Exceptional Error!!"
 End Sub
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022 (Using a new variable on current year)
 Sub byPromoNo_6customerNotice()
     Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
     Dim i As Integer, sPathEmail As String
@@ -958,7 +958,7 @@ Escape:    MsgBox "Please report Sales Admin Team. If you see this message box. 
 End Sub
 
 
-'Updated 19-01-2022 by Joachim (Using a new variable on current year)
+'Updated 19-01-2022 (Using a new variable on current year)
 Sub ByPromoNo9_ByCreditNoteNo_Dir()
     Dim avPromoList() As Variant, rngSelected As Range:   Set rngSelected = Selection
     Dim i As Integer, sPathEmail As String
@@ -1077,7 +1077,7 @@ End Sub
 2.
 Option Explicit
 
-'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+'Last modified 02-11--2021  //14-10-2021 Error Handling added
 '#######################  Report ############################
 Sub report_1RealTime()
     On Error GoTo Escape:       Workbooks.Open filename:=file_rawFilePath(31):          Exit Sub
@@ -1452,7 +1452,7 @@ End Sub
 
 Option Explicit
 
-'Last modified 02-11--2021 Bob  //14-10-2021 by Joahcim Error Handling added
+'Last modified 02-11--2021  //14-10-2021 Error Handling added
 
 '#######################  InvoiceMgtFile ############################ 4
 Sub invMgtFile_1MSRG()
